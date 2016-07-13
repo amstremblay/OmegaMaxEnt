@@ -8,4 +8,7 @@ Before you proceed, make sure you have read the LICENSE.txt file.
 
 Enjoy!
 
-Dominic Bergeron and André-Marie Tremblay
+Bug report: Dominic.Bergeron@USherbrooke.ca
+
+Developer: Dominic Bergeron, June 2015 
+
