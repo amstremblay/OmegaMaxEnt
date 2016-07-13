@@ -7,7 +7,7 @@ Omega MaxEnt : analytic continuation of numerical Matsubara data.
 2) To install from Source, Download and extract (with command "tar zxf file_name.tar.gz") the source files:
 Source_OmegaMaxEnt_source_2016-06-10.tar.gz
 
-3) Download armadillo-5.600.2.tar.gz and extract it in the OmegaMaxEnt source code directory. Note: There are more recent versions of [http://arma.sourceforge.net armadillo], but there seems to be an incompatibility with those versions. This will be investigated, but for now, please use the version provided.
+3) Download armadillo-5.600.2.tar.gz in this download directory and extract it in the OmegaMaxEnt source code directory. Note: There are more recent versions of [http://arma.sourceforge.net armadillo], but there seems to be an incompatibility with those versions. This will be investigated, but for now, please use the version provided.
 
 4) Copy the makefile from the directory corresponding to your system (OSX or Linux) to the source code directory and execute the command "make".
 
