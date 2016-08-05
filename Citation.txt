@@ -1,7 +1,7 @@
 Please kindly quote the following paper if you use this software in a publication:
 
 
-Dominic Bergeron and A.-M.S. Tremblay. Algorithms for optimized maximum entropy and diagnostic tools for analytic continuation. Phys. Rev. E 94, 023303.
+Dominic Bergeron and A.-M.S. Tremblay. Algorithms for optimized maximum entropy and diagnostic tools for analytic continuation.
 
 @article{PhysRevE.94.023303,
   title = {Algorithms for optimized maximum entropy and diagnostic tools for analytic continuation},
