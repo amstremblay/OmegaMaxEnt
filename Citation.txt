@@ -1,18 +1,19 @@
 Please kindly quote the following paper if you use this software in a publication:
 
 
-Dominic Bergeron and A.-M.S. Tremblay Algorithms for optimized maximum entropy and diagnostic tools for analytic continuation. arXiv:1507.01012
+Dominic Bergeron and A.-M.S. Tremblay. Algorithms for optimized maximum entropy and diagnostic tools for analytic continuation. Phys. Rev. E 94, 023303.
 
-@ARTICLE{2015arXiv150701012B,
-   author = {{Bergeron}, D. and {Tremblay}, A.-M.~S.},
-    title = "{Algorithms for optimized maximum entropy and diagnostic tools for analytic continuation}",
-  journal = {ArXiv e-prints},
-archivePrefix = "arXiv",
-   eprint = {1507.01012},
- primaryClass = "cond-mat.str-el",
- keywords = {Condensed Matter - Strongly Correlated Electrons, Physics - Computational Physics},
-     year = 2015,
-    month = jul,
-   adsurl = {http://adsabs.harvard.edu/abs/2015arXiv150701012B},
-  adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+@article{PhysRevE.94.023303,
+  title = {Algorithms for optimized maximum entropy and diagnostic tools for analytic continuation},
+  author = {Bergeron, Dominic and Tremblay, A.-M. S.},
+  journal = {Phys. Rev. E},
+  volume = {94},
+  issue = {2},
+  pages = {023303},
+  numpages = {25},
+  year = {2016},
+  month = {Aug},
+  publisher = {American Physical Society},
+  doi = {10.1103/PhysRevE.94.023303},
+  url = {http://link.aps.org/doi/10.1103/PhysRevE.94.023303}
 }
