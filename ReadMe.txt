@@ -1,5 +1,4 @@
-The OmegaMaxEnt website is under http://www.physique.usherbrooke.ca/MaxEnt/index.php/Main_Page. Start there
-to learn about OmegaMaxEnt.
+The OmegaMaxEnt website is under http://www.physique.usherbrooke.ca/MaxEnt/index.php/Main_Page. Start there to learn about OmegaMaxEnt.
 
 To install OmegaMaxEnt, follow the installation steps given under
 http://www.physique.usherbrooke.ca/MaxEnt/index.php/Download
