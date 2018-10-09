@@ -12,21 +12,16 @@
 		FC4D487E1A269C2E0035C357 /* generique.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = generique.h; sourceTree = "<group>"; };
 		FC58008919F46E1E0023092F /* graph_2D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = graph_2D.cpp; sourceTree = "<group>"; };
 		FC58008A19F46E1E0023092F /* includeDef.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = includeDef.h; sourceTree = "<group>"; };
-		FC58008B19F46E1E0023092F /* makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = makefile; sourceTree = "<group>"; };
 		FC58008E19F46E1E0023092F /* OmegaMaxEnt_data.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = OmegaMaxEnt_data.cpp; sourceTree = "<group>"; };
 		FC58008F19F46E1E0023092F /* OmegaMaxEnt_data.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OmegaMaxEnt_data.h; sourceTree = "<group>"; };
 		FC58009119F46E1E0023092F /* OmegaMaxEnt_main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = OmegaMaxEnt_main.cpp; sourceTree = "<group>"; };
 		FCE8374219F824A400C2C47C /* graph_2D.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = graph_2D.h; sourceTree = "<group>"; };
-		FCF960E31A31323E00B07825 /* OmegaMaxEnt_input_params.dat */ = {isa = PBXFileReference; lastKnownFileType = text; path = OmegaMaxEnt_input_params.dat; sourceTree = "<group>"; };
-		FCF960E41A31323E00B07825 /* OmegaMaxEnt_other_params.dat */ = {isa = PBXFileReference; lastKnownFileType = text; path = OmegaMaxEnt_other_params.dat; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
 		FC58008119F46D5E0023092F = {
 			isa = PBXGroup;
 			children = (
-				FCF960E31A31323E00B07825 /* OmegaMaxEnt_input_params.dat */,
-				FCF960E41A31323E00B07825 /* OmegaMaxEnt_other_params.dat */,
 				FCE8374219F824A400C2C47C /* graph_2D.h */,
 				FC58008919F46E1E0023092F /* graph_2D.cpp */,
 				FC58008F19F46E1E0023092F /* OmegaMaxEnt_data.h */,
@@ -36,7 +31,6 @@
 				FC4D487E1A269C2E0035C357 /* generique.h */,
 				FC58009119F46E1E0023092F /* OmegaMaxEnt_main.cpp */,
 				FC58008A19F46E1E0023092F /* includeDef.h */,
-				FC58008B19F46E1E0023092F /* makefile */,
 			);
 			sourceTree = "<group>";
 		};
