@@ -1,0 +1,277 @@
+%-------------------------------------------------------------------------------
+%Dominic Bergeron
+%-------------------------------------------------------------------------------
+
+%Définition du type (classe) de document
+%-------------------------------------------------------------------------------
+\documentclass[12pt,letterpaper,oneside,titlepage]{article}   
+%-------------------------------------------------------------------------------
+
+% Packages utiles
+%-------------------------------------------------------------------------------
+\usepackage{array}
+%\usepackage[french]{babel}  % Utilise l'hyphenation francaise
+\usepackage[dvips]{graphicx}    % Pour l'importation de graphiques EPS
+\usepackage{amsmath}        % Utilise les fonctions mathematiques avancees
+\usepackage{amssymb}
+\usepackage{times}      % Utilise le font Times plutot que le font standard de LaTeX (Computer Modern). Simplifie les fichiers PDF.
+%\usepackage{arial}
+%\usepackage{boxedminipage} % Pour faire des blocs d'equations dans une boite
+%\usepackage{lscape}        % Pour pouvoir mettre des pages en landscape (horizontal) 
+%\usepackage{float}     % Pour faire des tableaux multipages
+%\usepackage[ansinew]{inputenc}  % Pour que LaTeX reconnaisse les caracteres etendus (accents)
+%\usepackage{epsfig}
+%\usepackage{subfigure}
+\usepackage{t1enc}      %césure des mots accentués
+\usepackage{setspace}
+%\usepackage[pdftex=true]{hyperref}
+\usepackage{hyperref}
+%\usepackage{feynmp}
+%-------------------------------------------------------------------------------
+
+
+%Définition des marges et espacements
+%-------------------------------------------------------------------------------
+
+%\setlength{\parindent}{0in}
+
+\setlength{\voffset}{-0.465in}
+\setlength{\headheight}{12pt}
+\setlength{\headsep}{0.424in}
+\setlength{\topmargin}{0in}
+
+\setlength{\hoffset}{0.2in}
+\setlength{\oddsidemargin}{0in}
+
+%%\setlength{\marginparwidth}{1in}
+%%\setlength{\evensidemargin}{0.5in}
+
+\setlength{\textwidth}{5.84in}
+\setlength{\textheight}{8.5in}
+\linespread{1.5}
+\setlength{\parskip}{0.1in}
+\setlength{\footskip}{0.3in}
+
+%%\setlength{\subfigcapskip}{0pt}
+%%\setlength{\subfigtopskip}{15pt}
+%-------------------------------------------------------------------------------
+
+%numérote les équations par numéro de section
+%-------------------------------------------------------------------------------
+\numberwithin{equation}{section}    
+%-------------------------------------------------------------------------------
+
+%Nouvelles commandes pour l'affichage de symboles mathématiques
+%-------------------------------------------------------------------------------
+\newcommand\diverg{\nabla\cdot}
+\renewcommand{\d}[2]{\frac{#1}{#2}}
+\newcommand{\pd}{\partial}
+\newcommand{\bra}[1]{\langle #1|}
+\newcommand{\ket}[1]{| #1\rangle}
+\newcommand{\mn}[1]{\left\langle #1 \right\rangle}
+\newcommand{\bk}[2]{\left\langle #1 | #2 \right\rangle}
+\newcommand{\derPrem}[2]{\frac{d#1}{d#2}}
+\newcommand{\derSec}[2]{\frac{d^2#1}{d#2^2}}
+%-------------------------------------------------------------------------------
+
+%\title{Analytic continuation for spectral functions with non-definite sign}
+%\author{Dominic Bergeron}
+%\hyphenation{}
+
+\begin{document}
+
+\pagenumbering{arabic}
+
+%\maketitle
+
+%\clearpage
+
+%\tableofcontents
+
+%\clearpage
+
+\section{Analytic continuation for spectral functions with non-definite sign}
+
+Given a correlation function
+\begin{equation}
+C_{AB}(\tau)=-\mn{T_{\tau} A(\tau)B}\,,
+\end{equation}
+or its Fourier transform $C_{AB}(i\omega_n)$, analytic continuation of that function toward real frequencies using the maximum entropy method can only be done directly for spectral functions with the property 
+\begin{equation}\label{eq:positivity_fermions_1}
+Im[C_{AB}^R(\omega)]<0\,,
+\end{equation}
+if $A$ and $B$ are fermion operators, or
+\begin{equation}\label{eq:positivity_bosons_1}
+\frac{Im[C_{AB}^R(\omega)]}{\omega}<0\,,
+\end{equation}
+if $A$ and $B$ are boson operators. However, if $Im[C_{AB}^R(\omega)]$ does not satisfy that property, it can also be obtained \textit{indirectly}. Indeed, although more work is necessary, any such function can be obtained using a maximum entropy routine, provided other Matsubara correlation functions are also available \cite{Reymbaut:2015,Reymbaut_Gagnon_2017}. The procedure to to do so is the following:
+
+First, we define
+\begin{equation}
+\begin{split}
+O&=A+\mu B^\dagger\,,\\\
+P&=A+i\nu B^\dagger\,.
+\end{split}
+\end{equation}
+where $\mu$ and $\nu$ are real scalars such that $\mu B$ and $\nu B$ have the same dimension as $A$ and which values are assumed arbitrary in the present demonstration. Thus,
+\begin{equation}
+\begin{split}
+C_{OO^\dagger}(\tau)%&=-\mn{T_{\tau} O(\tau)O^\dagger}\,,\\
+&=-\mn{T_{\tau} (A+\mu B^\dagger)(\tau)(A+\mu B^\dagger)^\dagger}\\
+&=-\mn{T_{\tau} (A+\mu B^\dagger)(\tau)(A^\dagger+\mu B)}\\
+&=-\mn{T_{\tau} A(\tau)A^\dagger} -\mu\mn{T_{\tau}A(\tau)B}-\mu\mn{B^\dagger(\tau)A^\dagger}-\mu^2\mn{T_{\tau}B^\dagger(\tau)B}\\
+C_{OO^\dagger}(\tau)&=C_{AA^\dagger}(\tau)+\mu C_{AB}(\tau)+\mu C_{B^\dagger A^\dagger}(\tau)+\mu^2 C_{B^\dagger B}(\tau)\,,
+\end{split}\label{eq:def_COO}
+\end{equation}
+%\begin{equation}
+%C_{OO^\dagger}(i\omega_n)=C_{AA^\dagger}(i\omega_n)+\mu C_{AB}(i\omega_n)+\mu C_{B^\dagger A^\dagger}(i\omega_n)+\mu^2 C_{B^\dagger B}(i\omega_n)\,,
+%\end{equation}
+and
+\begin{equation}
+\begin{split}
+C_{PP^\dagger}(\tau)%&=-\mn{T_{\tau} P(\tau)P^\dagger}\,,\\
+&=-\mn{T_{\tau} (A+i\nu B^\dagger)(\tau)(A+i\nu B^\dagger)^\dagger}\,,\\
+&=-\mn{T_{\tau} (A+i\nu B^\dagger)(\tau)(A^\dagger-i\nu B)}\,,\\
+&=-\mn{T_{\tau} A(\tau)A^\dagger} +i\nu\mn{T_{\tau}A(\tau)B}-i\nu\mn{B^\dagger(\tau)A^\dagger}-\nu^2\mn{T_{\tau}B^\dagger(\tau)B}\\
+C_{PP^\dagger}(\tau)&=C_{AA^\dagger}(\tau) -i\nu C_{AB}(\tau)+i\nu C_{B^\dagger A^\dagger}(\tau)+\nu^2C_{B^\dagger B}(\tau)\,.
+\end{split}\label{eq:def_CPP}
+\end{equation}
+Now, if we define
+\begin{equation}
+\begin{split}
+%R(\tau)&=C_{OO^\dagger}(\tau)+\mn{T_{\tau} A(\tau)A^\dagger}+\mu^2\mn{T_{\tau}B^\dagger(\tau)B}\\
+R(\tau)&=C_{OO^\dagger}(\tau)-C_{AA^\dagger}(\tau)-\mu^2C_{B^\dagger B}(\tau)\\
+&=\mu\left[C_{AB}(\tau)+C_{B^\dagger A^\dagger}(\tau)\right]
+\end{split}\label{eq:R_tau}
+\end{equation}
+and
+\begin{equation}
+\begin{split}
+%S(\tau)&=C_{PP^\dagger}(\tau)+\mn{T_{\tau} A(\tau)A^\dagger}+\nu^2\mn{T_{\tau}B^\dagger(\tau)B}\\
+S(\tau)&=C_{PP^\dagger}(\tau)-C_{AA^\dagger}(\tau)-\nu^2C_{B^\dagger B}(\tau)\\
+&=-i\nu\left[C_{AB}(\tau)-C_{B^\dagger A^\dagger}(\tau)\right]\,,
+\end{split}\label{eq:S_tau}
+\end{equation}
+we have
+\begin{equation}
+C_{AB}(\tau)=\frac{1}{2}\left[\frac{1}{\mu}R(\tau)+i\frac{1}{\nu}S(\tau)\right]\,,
+\end{equation}
+or
+\begin{equation}
+C_{AB}(i\omega_n)=\frac{1}{2}\left[\frac{1}{\mu}R(i\omega_n)+i\frac{1}{\nu}S(i\omega_n)\right]\,,
+\end{equation}
+or
+\begin{equation}
+C_{AB}^R(\omega)=\frac{1}{2}\left[\frac{1}{\mu}R^R(\omega)+i\frac{1}{\nu}S^R(\omega)\right]\,.
+\end{equation}
+Therefore,
+\begin{equation}\label{eq:Im_C_AB}
+Im[C_{AB}^R(\omega)]=\frac{1}{2}\left[\frac{1}{\mu}Im[R^R(\omega)]+\frac{1}{\nu}Re[S^R(\omega)]\right]\,,
+\end{equation}
+where, from \eqref{eq:R_tau} and \eqref{eq:S_tau},
+\begin{equation}\label{eq:R_R_omega}
+R^R(\omega)=C_{OO^\dagger}^R(\omega)-C_{AA^\dagger}^R(\omega)-\mu^2C_{B^\dagger B}^R(\omega)\\
+\end{equation}
+and
+\begin{equation}\label{eq:S_R_omega}
+S^R(\omega)=C_{PP^\dagger}^R(\omega)-C_{AA^\dagger}^R(\omega)-\nu^2C_{B^\dagger B}^R(\omega)\,.
+\end{equation}
+
+Now, the right-hand sides of \eqref{eq:R_tau} and \eqref{eq:S_tau} contain only correlation functions that satisfy property \eqref{eq:positivity_fermions_1} or \eqref{eq:positivity_bosons_1} (see section \ref{sec:definite_sign_sf} for the proof)  and can thus be treated directly with a maximum entropy (MaxEnt) routine. To obtain $Im[R^R(\omega)]$, it suffices to obtain $Im[C_{OO^\dagger}^R(\omega)]$, $Im[C_{AA^\dagger}(\omega)]$ and $Im[C_{B^\dagger B}(\omega)]$ separately with the MaxEnt routine and then use \eqref{eq:R_R_omega}. If the correlation function has the property $C_{AB}(\tau)=C_{B^\dagger A^\dagger}(\tau)$, then $S(\tau)=0$ and the problem is solved. Otherwise, to obtain $Re[S^R(\omega)]$ in \eqref{eq:Im_C_AB} using \eqref{eq:S_R_omega}, we need $Re[C_{PP^\dagger}(\omega)]$, $Re[C_{AA^\dagger}(\omega)]$ and $Re[C_{B^\dagger B}(\omega)]$. Those functions can be computed using the Kramers-Kr\"onig relation:
+\begin{equation}
+Re[C_{AB}^R(\omega)]=\mathcal{P}\int \frac{d\omega'}{\pi} \frac{Im[C_{AB}^R(\omega)]}{\omega'-\omega}\,,
+\end{equation}
+once the imaginary parts have been computed with the MaxEnt routine. Therefore, all functions necessary to obtain $Im[C_{AB}^R(\omega)]$ can be obtained with a maximum entropy routine and a Kramers-Kr\"onig relation.
+
+To summarize, the steps to obtain $Im[C_{AB}^R(\omega)]$ are
+\begin{enumerate}
+\item Compute $C_{AB}(\tau)$, $C_{B^\dagger A^\dagger}(\tau)$, $C_{AA^\dagger}(\tau)$ and $C_{B^\dagger B}(\tau)$, or their Matsubara frequency counterparts
+\item Define the parameters $\mu$ and $\nu$ and compute $C_{OO^\dagger}(\tau)$, given by \eqref{eq:def_COO} and $C_{PP^\dagger}(\tau)$, given by \eqref{eq:def_CPP}, or their Matsubara frequency counterparts
+\item Use a maximum entropy routine to compute $Im[C_{OO^\dagger}^R(\omega)]$, $Im[C_{PP^\dagger}(\omega)]$ (if $C_{AB}(\tau)\neq C_{B^\dagger A^\dagger}(\tau)$), $Im[C_{AA^\dagger}(\omega)]$ and $Im[C_{B^\dagger B}(\omega)]$
+\item If $C_{AB}(\tau)\neq C_{B^\dagger A^\dagger}(\tau)$, use the appropriate Kramers-Kr\"onig relation to obtain $Re[C_{PP^\dagger}(\omega)]$, $Re[C_{AA^\dagger}(\omega)]$ and $Re[C_{B^\dagger B}(\omega)]$
+\item Compute $Im[C_{AB}^R(\omega)]$ with \eqref{eq:Im_C_AB}, \eqref{eq:R_R_omega} and \eqref{eq:S_R_omega}
+\end{enumerate}
+
+In practice, the stability of the result will depend on the values of $\mu$ and $\nu$. Those values must therefore be varied to find a region of the $(\mu,\nu)$ space where the result is stable \cite{Reymbaut:2015}.
+
+This method was originally published in Ref. \cite{Reymbaut:2015}, including an example of application on the calculation of the ``anomalous'' part of the Green function in superconductivity. Another example of application on the calculation of thermoelectric (Seebeck) response functions can be found in Ref. \cite{Reymbaut_Gagnon_2017}.
+
+To summarize, the steps to obtain $Im[C_{AB}^R(\omega)]$ are
+\begin{enumerate}
+\item Compute $C_{AB}(\tau)$, $C_{B^\dagger A^\dagger}(\tau)$, $C_{AA^\dagger}(\tau)$ and $C_{B^\dagger B}(\tau)$
+\item Define $\mu$ and $\nu$ and compute $C_{OO^\dagger}(\tau)$, $C_{PP^\dagger}(\tau)$
+\item Use MaxEnt to compute $Im[C_{OO^\dagger}^R(\omega)]$, $Im[C_{PP^\dagger}^R(\omega)]$, $Im[C_{AA^\dagger}^R(\omega)]$ and $Im[C_{B^\dagger B}^R(\omega)]$, then $Im[R^R(\omega)]$
+\item Use Kramers-Kr\"onig to obtain $Re[C_{PP^\dagger}(\omega)]$, $Re[C_{AA^\dagger}(\omega)]$ and $Re[C_{B^\dagger B}(\omega)]$, then $Re[S^R(\omega)]$ 
+\end{enumerate}
+
+
+\section{Spectral function with definite sign}\label{sec:definite_sign_sf}
+
+The spectral function $Im[C_{AA^\dagger}^R(\omega)]$ associated with a correlation function of the form
+\begin{equation}
+C_{AA^\dagger}(\tau)=-\mn{T_{\tau} A(\tau)A^\dagger}
+\end{equation}
+has the property
+\begin{equation}\label{eq:positivity_fermions}
+Im[C_{AA^\dagger}^R(\omega)]<0\,,
+\end{equation}
+if $A$ is a fermion operator, or
+\begin{equation}\label{eq:positivity_bosons}
+\frac{Im[C_{AA^\dagger}^R(\omega)]}{\omega}<0\,,
+\end{equation}
+if $A$ is a boson operator.
+
+\textit{Proof:}
+
+Let us assume $\tau>0$. If $\ket{i}$ are eigenstates of $H$, then
+\begin{equation}
+\begin{split}
+C_{AA^\dagger}(\tau)&=-\frac{1}{Z}\sum_i\bra{i}e^{-\beta H}e^{\tau H}Ae^{-\tau H}A^\dagger\ket{i}\\
+&=-\frac{1}{Z}\sum_{ij}\bra{i}e^{-\beta H}e^{\tau H}Ae^{-\tau H}\ket{j}\bra{j}A^\dagger\ket{i}\\
+&=-\frac{1}{Z}\sum_{ij}e^{-\beta E_i}e^{\tau \left(E_i-E_j\right)}\bra{i}A\ket{j}\bra{j}A^\dagger\ket{i}\\
+&=-\frac{1}{Z}\sum_{ij}e^{-\beta E_i}e^{\tau \left(E_i-E_j\right)}\left|\bra{i}A\ket{j}\right|^2\,,
+\end{split}
+\end{equation}
+where
+\begin{equation}
+Z=\sum_i\bra{i}e^{-\beta H}\ket{i}=\sum_ie^{-\beta E_i}\,.
+\end{equation}
+
+The Fourier transform of $C_{AA^\dagger}(\tau)$ is
+\begin{equation}
+\begin{split}
+C_{AA^\dagger}(i\omega_n)&=-\frac{1}{Z}\sum_{ij}e^{-\beta E_i}\left|\bra{i}A\ket{j}\right|^2\int_{0}^\beta d\tau e^{i\omega_n\tau}e^{\tau \left(E_i-E_j\right)}\\
+&=-\frac{1}{Z}\sum_{ij}\frac{\left|\bra{i}A\ket{j}\right|^2}{i\omega_n+E_i-E_j}e^{-\beta E_i}\left(e^{i\omega_n\beta}e^{\beta\left(E_i-E_j\right)}-1\right)\\
+&=-\frac{1}{Z}\sum_{ij}\frac{\left|\bra{i}A\ket{j}\right|^2}{i\omega_n+E_i-E_j}\left(\pm e^{-\beta E_j}-e^{-\beta E_i}\right)\\
+\end{split}
+\end{equation}
+where $+$ is for bosons and $-$ is for fermions. Now the retarded correlation function is
+\begin{equation}
+C_{AA^\dagger}^R(\omega)=-\lim_{\eta\rightarrow 0^+}\frac{1}{Z}\sum_{ij}\frac{\left|\bra{i}A\ket{j}\right|^2}{\omega+i\eta+E_i-E_j}\left(\pm e^{-\beta E_j}-e^{-\beta E_i}\right)\\
+\end{equation}
+and thus,
+\begin{equation}
+Im[C_{AA^\dagger}^R(\omega)]=\frac{\pi}{Z}\sum_{ij}\left|\bra{i}A\ket{j}\right|^2\left(\pm e^{-\beta E_j}-e^{-\beta E_i}\right)\delta(\omega+E_i-E_j)\,.
+\end{equation}
+
+Therefore,
+\begin{equation}
+Im[C_{AA^\dagger}^R(\omega)]<0\,,\qquad fermions\\\,,
+\end{equation}
+\begin{equation}
+Im[C_{AA^\dagger}^R(\omega)]
+\begin{cases}
+<0\,,\quad\omega>0\\
+>0\,,\quad\omega<0\\
+\end{cases},\qquad bosons
+\end{equation}
+i.e.
+\begin{equation}
+\frac{Im[C_{AA^\dagger}^R(\omega)]}{\omega}<0\,,\qquad bosons.
+\end{equation}
+
+\bibliographystyle{plain}
+\bibliography{tout2013}
+
+\end{document}
+

@@ -1,0 +1,109 @@
+%-------------------------------------------------------------------------------
+%User guide for omega_maxent
+%Dominic Bergeron
+%-------------------------------------------------------------------------------
+
+%Définition du type (classe) de document
+%-------------------------------------------------------------------------------
+\documentclass[12pt,letterpaper,oneside,titlepage]{article}   
+%-------------------------------------------------------------------------------
+
+% Packages utiles
+%-------------------------------------------------------------------------------
+\usepackage{array}
+%\usepackage[french]{babel}  % Utilise l'hyphenation francaise
+\usepackage[dvips]{graphicx}    % Pour l'importation de graphiques EPS
+\usepackage{amsmath}        % Utilise les fonctions mathematiques avancees
+\usepackage{amssymb}
+\usepackage{times}      % Utilise le font Times plutot que le font standard de LaTeX (Computer Modern). Simplifie les fichiers PDF.
+%\usepackage{arial}
+%\usepackage{boxedminipage} % Pour faire des blocs d'equations dans une boite
+%\usepackage{lscape}        % Pour pouvoir mettre des pages en landscape (horizontal) 
+%\usepackage{float}     % Pour faire des tableaux multipages
+%\usepackage[ansinew]{inputenc}  % Pour que LaTeX reconnaisse les caracteres etendus (accents)
+%\usepackage{epsfig}
+%\usepackage{subfigure}
+\usepackage{t1enc}      %césure des mots accentués
+\usepackage{setspace}
+\usepackage[pdftex=true]{hyperref}
+%\usepackage{feynmp}
+%-------------------------------------------------------------------------------
+
+
+%Définition des marges et espacements
+%-------------------------------------------------------------------------------
+
+%\setlength{\parindent}{0in}
+
+\setlength{\voffset}{-0.465in}
+\setlength{\headheight}{12pt}
+\setlength{\headsep}{0.424in}
+\setlength{\topmargin}{0in}
+
+\setlength{\hoffset}{0.2in}
+\setlength{\oddsidemargin}{0in}
+
+%%\setlength{\marginparwidth}{1in}
+%%\setlength{\evensidemargin}{0.5in}
+
+\setlength{\textwidth}{5.84in}
+\setlength{\textheight}{8.5in}
+\linespread{1.5}
+\setlength{\parskip}{0.1in}
+\setlength{\footskip}{0.3in}
+
+%%\setlength{\subfigcapskip}{0pt}
+%%\setlength{\subfigtopskip}{15pt}
+%-------------------------------------------------------------------------------
+
+%numérote les équations par numéro de section
+%-------------------------------------------------------------------------------
+\numberwithin{equation}{section}    
+%-------------------------------------------------------------------------------
+
+%Nouvelles commandes pour l'affichage de symboles mathématiques
+%-------------------------------------------------------------------------------
+\newcommand\diverg{\nabla\cdot}
+\renewcommand{\d}[2]{\frac{#1}{#2}}
+\newcommand{\pd}{\partial}
+\newcommand{\bra}[1]{\langle #1|}
+\newcommand{\ket}[1]{| #1\rangle}
+\newcommand{\mn}[1]{\left\langle #1 \right\rangle}
+\newcommand{\bk}[2]{\left\langle #1 | #2 \right\rangle}
+\newcommand{\derPrem}[2]{\frac{d#1}{d#2}}
+\newcommand{\derSec}[2]{\frac{d^2#1}{d#2^2}}
+%-------------------------------------------------------------------------------
+
+\title{\textit{$\Omega$MaxEnt} user guide}
+\author{Dominic Bergeron}
+%\hyphenation{}
+
+\begin{document}
+
+\pagenumbering{arabic}
+
+\section{Spectral representation for a bosonic Matsubara function} 
+
+For a bosonic Matsubara function for which $\Lambda(\omega)=A(\omega)/\omega >0$,
+\begin{equation}\label{eq:spectr_G}
+\begin{split}
+\chi(i\omega_n)&=\int_{-\infty}^{\infty}\frac{d\omega}{2\pi}\,\frac{A(\omega)}{i\omega_n-\omega}\\
+&=\int_{-\infty}^{\infty}\frac{d\omega}{2\pi}\,\frac{\omega}{i\omega_n-\omega}\Lambda(\omega)\\
+&=-\int_{-\infty}^{\infty}\frac{d\omega}{2\pi}\,\frac{\omega^2}{\omega_n^2+\omega^2}\Lambda(\omega)-i\omega_n\int_{-\infty}^{\infty}\frac{d\omega}{2\pi}\,\frac{\omega}{\omega_n^2+\omega^2}\Lambda(\omega)\\
+\end{split}
+\end{equation}
+
+\begin{equation}
+\text{Re}[\chi(i\omega_n)]=-\int_{-\infty}^{\infty}\frac{d\omega}{2\pi}\,\frac{\omega^2}{\omega_n^2+\omega^2}\Lambda(\omega)
+\end{equation}
+\begin{equation}
+\text{Im}[\chi(i\omega_n)]=-\omega_n\int_{-\infty}^{\infty}\frac{d\omega}{2\pi}\,\frac{\omega}{\omega_n^2+\omega^2}\Lambda(\omega)
+\end{equation}
+
+If $\Lambda(\omega)=\Lambda(-\omega)$, then $\text{Im}[\chi(i\omega_n)]=0$.
+
+
+
+
+\end{document}
+
