@@ -3078,6 +3078,13 @@ void OmegaMaxEnt_data::compute_Re_chi_omega(vec Ap)
 	
 	spline_chi_part(w, Nw_lims, ws, Ap, coeffs);
 	
+	vec extr_w(2);
+	extr_w(0)=-w(Nw-1);
+	extr_w(1)=w(Nw-1);
+	
+	set_output_frequency_grid(extr_w);
+	
+/*
 	double w_dense_min, w_dense_max, w_range, dw_dense;
 	vec Dw=w.rows(1,Nw-1)-w.rows(0,Nw-2);
 	double dw_min=Dw.min();
@@ -3087,18 +3094,7 @@ void OmegaMaxEnt_data::compute_Re_chi_omega(vec Ap)
 		w_dense_min=output_grid_params(0);
 		w_dense_max=output_grid_params(2);
 		dw_dense=output_grid_params(1);
-	/*
-		if (w_dense_min<-w(Nw-1) || w_dense_min>0)
-		{
-			cout<<"compute_Re_G_omega(): invalid minimum output frequency. Setting it to minimum value of the grid.\n";
-			w_dense_min=w(0)+dw_dense;
-		}
-		if (w_dense_max>w(Nw-1) || w_dense_max<0)
-		{
-			cout<<"compute_Re_G_omega(): invalid maximum output frequency. Setting it to maximum value of the grid.\n";
-			w_dense_max=w(Nw-1)-dw_dense;
-		}
-	 */
+ 
 		w_range=w_dense_max-w_dense_min;
 		if (dw_dense>2*dw_min)
 		{
@@ -3150,10 +3146,11 @@ void OmegaMaxEnt_data::compute_Re_chi_omega(vec Ap)
 	}
 	
 	cout<<"number of points in the output real frequency grid: "<<Nw_dense<<endl;
-	cout<<"frequency of the output real frequency grid: "<<dw_dense<<endl;
+	cout<<"frequency step of the output real frequency grid: "<<dw_dense<<endl;
 	cout<<"minimum frequency of the output real frequency grid: "<<w_dense_min<<endl;
 	cout<<"maximum frequency of the output real frequency grid: "<<w_dense_max<<endl;
-
+*/
+	
 	int j0;
 	j=0;
 	while (j<Nw_dense && w_dense(j)<0) j++;
@@ -3307,8 +3304,14 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 	
 	spline_G_part(w, Nw_lims, ws, Ap/2, coeffs);
 	
-	double w_dense_min, w_dense_max, dw_dense, w_range;
+	vec extr_w(2);
+	extr_w(0)=w(0);
+	extr_w(1)=w(Nw-1);
 	
+	set_output_frequency_grid(extr_w);
+	
+/*
+	double w_dense_min, w_dense_max, dw_dense, w_range;
 	vec Dw=w.rows(1,Nw-1)-w.rows(0,Nw-2);
 	double dw_min=Dw.min();
 	
@@ -3317,18 +3320,7 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 		w_dense_min=output_grid_params(0);
 		w_dense_max=output_grid_params(2);
 		dw_dense=output_grid_params(1);
-	/*
-		if (w_dense_min<w(0) || w_dense_min>0)
-		{
-			cout<<"compute_Re_G_omega(): invalid minimum output frequency. Setting it to minimum value of the grid.\n";
-			w_dense_min=w(0)+dw_dense;
-		}
-		if (w_dense_max>w(Nw-1) || w_dense_max<0)
-		{
-			cout<<"compute_Re_G_omega(): invalid maximum output frequency. Setting it to maximum value of the grid.\n";
-			w_dense_max=w(Nw-1)-dw_dense;
-		}
-	 */
+	
 		w_range=w_dense_max-w_dense_min;
 		if (dw_dense>2*dw_min)
 		{
@@ -3378,11 +3370,12 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 			w_range=w_dense_max-w_dense_min;
 		}
 	}
-	
-	cout<<"number of points in the output real frequency grid: "<<Nw_dense<<endl;
-	cout<<"frequency of the output real frequency grid: "<<dw_dense<<endl;
-	cout<<"minimum frequency of the output real frequency grid: "<<w_dense_min<<endl;
-	cout<<"maximum frequency of the output real frequency grid: "<<w_dense_max<<endl;
+ 
+ cout<<"number of points in the output real frequency grid: "<<Nw_dense<<endl;
+ cout<<"frequency step of the output real frequency grid: "<<dw_dense<<endl;
+ cout<<"minimum frequency of the output real frequency grid: "<<w_dense_min<<endl;
+ cout<<"maximum frequency of the output real frequency grid: "<<w_dense_max<<endl;
+	*/
 	
 	spline_val_G_part(w_dense, w, Nw_lims, ws, coeffs, Gi_Re_w);
 	Gi_Re_w=-Gi_Re_w;
@@ -3560,6 +3553,76 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 	Gi_Re_w_KK=Gi_Re_w_KK+M0*Re_dGi;
 */
 	
+}
+
+void OmegaMaxEnt_data::set_output_frequency_grid(vec extr_w)
+{
+	R_dw_min_dw_dense=5;
+	
+	double w_dense_min, w_dense_max, dw_dense, w_range;
+	vec Dw=w.rows(1,Nw-1)-w.rows(0,Nw-2);
+	double dw_min=Dw.min()/R_dw_min_dw_dense;
+	
+	if (output_grid_params_in.size() && output_grid_params(0)<0 && output_grid_params(2)>0 && output_grid_params(0)>extr_w(0) && output_grid_params(2)<extr_w(1))
+	{
+		w_dense_min=output_grid_params(0);
+		w_dense_max=output_grid_params(2);
+		dw_dense=output_grid_params(1);
+		
+		w_range=w_dense_max-w_dense_min;
+		if (dw_dense>2*dw_min)
+		{
+			cout<<"compute_Re_G_omega(): invalid output frequency step. Setting it to minimum step in the grid.\n";
+			dw_dense=dw_min;
+		}
+		
+		int Nw_p, Nw_m;
+		Nw_p=(int)floor(w_dense_max/dw_dense)+1;
+		Nw_m=(int)floor(fabs(w_dense_min)/dw_dense);
+		
+		vec w_dense_p=linspace<vec>(0,Nw_p-1,Nw_p)*dw_dense;
+		vec w_dense_m=-linspace<vec>(1,Nw_m,Nw_m)*dw_dense;
+		w_dense=join_vert(flipud(w_dense_m),w_dense_p);
+		Nw_dense=Nw_p+Nw_m;
+	}
+	else
+	{
+		if (output_grid_params_in.size())
+		{
+			cout<<"set_output_frequency_grid(): invalid output real frequency grid parameters.\n";
+			if (output_grid_params(0)>0 || output_grid_params(2)<0) cout<<"omega=0 is not in the provided frequency range\n";
+			if (output_grid_params(0)<extr_w(0) || output_grid_params(2)>extr_w(1)) cout<<"at least one extremum is outside the range where the spectrum is defined\n";
+			cout<<"Using the default output real frequency grid.\n";
+		}
+		dw_dense=dw_min;
+		w_range=R_SW_G_Re_w_range*SW;
+		double log2_Nw_dense=ceil(log2(w_range/dw_dense));
+		int Nw_p=pow(2,log2_Nw_dense-1);
+		vec w_dense_p=linspace<vec>(0,Nw_p,Nw_p+1)*dw_dense;
+		vec w_dense_m=-linspace<vec>(1,Nw_p,Nw_p)*dw_dense;
+		w_dense=join_vert(flipud(w_dense_m),w_dense_p);
+		Nw_dense=2*Nw_p+1;
+		w_dense_min=w_dense(0);
+		w_dense_max=w_dense(Nw_dense-1);
+		w_range=w_dense_max-w_dense_min;
+		
+		while (w_dense_min<extr_w(0) || w_dense_max>extr_w(1))
+		{
+			Nw_p=Nw_p/2;
+			w_dense_p=w_dense_p(0,Nw_p);
+			w_dense_m=w_dense_m(0,Nw_p-1);
+			w_dense=join_vert(flipud(w_dense_m),w_dense_p);
+			Nw_dense=2*Nw_p+1;
+			w_dense_min=w_dense(0);
+			w_dense_max=w_dense(Nw_dense-1);
+			w_range=w_dense_max-w_dense_min;
+		}
+	}
+	
+	cout<<"number of points in the output real frequency grid: "<<Nw_dense<<endl;
+	cout<<"frequency step of the output real frequency grid: "<<dw_dense<<endl;
+	cout<<"minimum frequency of the output real frequency grid: "<<w_dense_min<<endl;
+	cout<<"maximum frequency of the output real frequency grid: "<<w_dense_max<<endl;
 }
 
 void OmegaMaxEnt_data::compute_G_Re_omega_from_A_t(vec t, cx_vec At, cx_vec &G_Re_omega)
@@ -21977,6 +22040,14 @@ bool OmegaMaxEnt_data::load_other_params()
 				if (R_SW_G_Re_w_range!=Other_params_fl_default_values[R_SW_G_RE_W_RANGE] || print_other_params)
 					cout<<Other_params_fl[R_SW_G_RE_W_RANGE]<<" "<<R_SW_G_Re_w_range<<endl;
 			}
+			else if (str.compare(0,Other_params_fl[R_DW_MIN_DW_DENSE].size(),Other_params_fl[R_DW_MIN_DW_DENSE])==0)
+			{
+				str=str.substr(Other_params_fl[R_DW_MIN_DW_DENSE].size());
+				R_dw_min_dw_dense=stod(str);
+				if (R_dw_min_dw_dense!=Other_params_fl_default_values[R_DW_MIN_DW_DENSE] || print_other_params)
+					cout<<Other_params_fl[R_DW_MIN_DW_DENSE]<<" "<<R_dw_min_dw_dense<<endl;
+			}
+			
             getline(file,str);
         }
         file.close();
