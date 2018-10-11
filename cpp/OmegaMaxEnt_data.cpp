@@ -1886,8 +1886,9 @@ bool OmegaMaxEnt_data::preproc()
 			Gtau=green_data.col(col_Gtau-1);
 			if (Gtau.max()*Gtau.min()<0)
 			{
-				cout<<"error: G(tau) must not change sign.\n";
-				return false;
+				cout<<"warning: sign change in G(tau).\n";
+	//			cout<<"error: G(tau) must not change sign.\n";
+	//			return false;
 			}
 			if (Gtau(0)>0) Gtau=-Gtau;
 			Gchi2=Gtau;
@@ -1938,7 +1939,7 @@ bool OmegaMaxEnt_data::preproc()
 				return false;
 			}
 			
-			if ( (!moments_provided && maxM>0) || eval_moments )
+			if ( !moments_provided || eval_moments )
 			{
 				if (!compute_moments_tau_fermions())
 				{
@@ -2321,8 +2322,9 @@ bool OmegaMaxEnt_data::preproc()
 			Gtau=green_data.col(col_Gtau-1);
 			if (Gtau.max()*Gtau.min()<0)
 			{
-				cout<<"error: G(tau) must not change sign.\n";
-				return false;
+				cout<<"warning: sign change in G(tau).\n";
+		//		cout<<"error: G(tau) must not change sign.\n";
+		//		return false;
 			}
 			if (Gtau(0)>0) Gtau=-Gtau;
 			Gchi2=Gtau;
@@ -2377,7 +2379,7 @@ bool OmegaMaxEnt_data::preproc()
 				return false;
 			}
 
-			if ( (!moments_provided && maxM>0) || eval_moments )
+			if ( !moments_provided  || eval_moments )
 			{
 				if (!compute_moments_tau_bosons())
 				{
@@ -2721,8 +2723,9 @@ bool OmegaMaxEnt_data::preproc()
 			Gtau=green_data.col(col_Gtau-1);
 			if (Gtau.max()*Gtau.min()<0)
 			{
-				cout<<"error: G(tau) must not change sign.\n";
-				return false;
+				cout<<"warning: sign change in G(tau).\n";
+		//		cout<<"error: G(tau) must not change sign.\n";
+		//		return false;
 			}
 			if (Gtau(0)>0) Gtau=-Gtau;
 			Gchi2=Gtau;
@@ -2777,7 +2780,7 @@ bool OmegaMaxEnt_data::preproc()
 				return false;
 			}
 		
-			if ( (!moments_provided && maxM>0) || eval_moments )
+			if ( !moments_provided || eval_moments )
 			{
 				if (!compute_moments_tau_bosons())
 				{
@@ -6798,7 +6801,7 @@ bool OmegaMaxEnt_data::compute_moments_tau_bosons()
 	
 	if (NNfit<5)
 	{
-		cout<<"compute_moments_tau_fermions(): imaginary time step is too small to extract the moments. Provide the first and second moments or use a smaller step.\n";
+		cout<<"compute_moments_tau_fermions(): imaginary time step is too large to extract the moments. Provide the first and second moments or use a smaller step.\n";
 		return false;
 	}
 	
@@ -9222,7 +9225,7 @@ bool OmegaMaxEnt_data::compute_dG_dtau()
 	int sgn=1;
 	if (boson) sgn=-1;
 	
-	int Nfitmax_max=50;
+	int Nfitmax_max=20;
 	
 	int Nv=1;
 	int NvN=1;
@@ -9246,7 +9249,7 @@ bool OmegaMaxEnt_data::compute_dG_dtau()
 	
 	if (NNfit<5)
 	{
-		cout<<"compute_dG_dtau(): imaginary time step is too small to determine dG/dtau.\n";
+		cout<<"compute_dG_dtau(): imaginary time step is too large to determine dG/dtau.\n";
 		return false;
 	}
 	
@@ -9261,7 +9264,7 @@ bool OmegaMaxEnt_data::compute_dG_dtau()
 	int p;
 	for (Nfit=Nfitmin; Nfit<=Nfitmax; Nfit++)
 	{
-		for (np=npmin; np<Nfit; np++)
+		for (np=npmin; np<Nfit-1; np++)
 		{
 			X=zeros<mat>(Nfit,np+1);
 			for (p=0; p<=np; p++)
@@ -9443,7 +9446,7 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	//cout<<"COMPUTING MOMENTS with compute_moments_tau_fermions()\n";
 	cout<<"COMPUTING MOMENTS\n";
 	
-	int Nfitmax_max=50;
+	int Nfitmax_max=20;
 	
 	int Nv=1;
 	int NvN=1;
@@ -9511,12 +9514,14 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	else
 		Wtmp=abs(M1_NP_tmp/M0_NP_tmp);
 	
-//	cout<<"Wtmp: "<<Wtmp<<endl;
-	
 	int Nfitmax=ceil(FNfitTauW*Ntau*tem/(abs(M1_NP_tmp/M0_NP_tmp)+Wtmp));
 	if (Nfitmax>Ntau) Nfitmax=Ntau;
 	if (Nfitmax>Nfitmax_max) Nfitmax=Nfitmax_max;
 
+//	cout<<"1/Wtmp: "<<1/Wtmp<<endl;
+//	cout<<"Dtau: "<<tau(1)<<endl;
+//	cout<<"Nfitmax: "<<Nfitmax<<endl;
+	
 	mat X, CG, invCG, AM;
 	vec Gchi2tmp, BM, Mtmp;
 	npmin=3;
@@ -9525,7 +9530,7 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	
 	if (NNfit<5)
 	{
-		cout<<"compute_moments_tau_fermions(): imaginary time step is too small to extract the moments. Provide the first and second moments or use a smaller step.\n";
+		cout<<"compute_moments_tau_fermions(): imaginary time step is too large to extract the moments. Provide the first and second moments or use a smaller step.\n";
 		return false;
 	}
 	
@@ -9541,7 +9546,7 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	
 	for (Nfit=Nfitmin; Nfit<=Nfitmax; Nfit++)
 	{
-		for (np=npmin; np<Nfit; np++)
+		for (np=npmin; np<Nfit-1; np++)
 		{
 			X=zeros<mat>(Nfit,np+1);
 			for (p=0; p<=np; p++)
