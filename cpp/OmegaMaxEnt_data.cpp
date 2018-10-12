@@ -189,7 +189,7 @@ void OmegaMaxEnt_data::loop_run()
 			Ginf_finite=true;
 		}
 		
-		if (Ginf_finite && !eval_moments_in.size()) eval_moments=true;
+		if (Ginf_finite && !eval_moments_in.size() && !G_omega_inf_in.size()) eval_moments=true;
 
 //		if (!interactive_mode)
 		if (!graph_2D::display_figures && !graph_2D::print_to_file)
@@ -648,7 +648,6 @@ void OmegaMaxEnt_data::loop_run()
 					
 					compute_Bryan_spectrum(Abr);
 				}
-				
 				
 				char alpha_output[100], alpha_output_format[]="alpha: % 1.4e,  Q: % 1.4e,  S: % 1.4e,  chi2: % 1.4e\n";
 				double Q=chi2_vec(ind_alpha_vec-1)-alpha_vec(ind_alpha_vec-1)*S_vec(ind_alpha_vec-1);
@@ -1850,6 +1849,9 @@ bool OmegaMaxEnt_data::preproc()
 			}
 			jfit=0;
 
+//			cout<<"maxM: "<<maxM<<endl;
+//			cout<<"moments_provided: "<<moments_provided<<endl;
+//			cout<<"eval_moments: "<<eval_moments<<endl;
 			if ( (!moments_provided && maxM>=0) || eval_moments )
 			{
 				if (!Ginf_finite)
@@ -3676,7 +3678,7 @@ void OmegaMaxEnt_data::compute_G_Re_omega_from_A_t(vec t, cx_vec At, cx_vec &G_R
 	
 	G_Re_omega.zeros(Nw_dense);
 	
-	G_Re_omega=M0/wG+M1/pow(wG,2)+(exp(I*wG*2.0*PI/dw)*d2Atmax-d2At0)/pow(wG,3)+I*TF_d3At%(exp(I*wG*dt)-1.0)/pow(wG,4);
+	G_Re_omega=At(0)/wG+M1/pow(wG,2)+(exp(I*wG*2.0*PI/dw)*d2Atmax-d2At0)/pow(wG,3)+I*TF_d3At%(exp(I*wG*dt)-1.0)/pow(wG,4);
 	
 	wG(jw0)=w_dense(jw0);
 	
@@ -3858,8 +3860,21 @@ void OmegaMaxEnt_data::Fourier_transform_spectrum(vec wFt, vec AwFt, vec &t, cx_
 	double d2A_wmax=6*coeffs(4*N_interv-4)*dwFt+2*coeffs(4*N_interv-3);
 	
 	At=-I*(d2A_wmax*exp(-I*t*wFt(N_interv))-d2A_wmin*exp(-I*t*wFt(0)))/(2*PI*pow(t,3)) - TF_d3Aw/(2*PI*pow(t,4));
-	At(0)=M0;
+//	At(0)=M0;
 	t(0)=0;
+	
+	At(0)=0;
+	double a,b,c,d;
+	for (int m=0; m<N_interv; m++)
+	{
+		a=coeffs(4*m);
+		b=coeffs(4*m+1);
+		c=coeffs(4*m+2);
+		d=coeffs(4*m+3);
+		At(0)+=a*pow(dwFt,4)/4+b*pow(dwFt,3)/3+c*pow(dwFt,2)/2+d*dwFt;
+	}
+	
+	At(0)=At(0)/(2*PI);
 	
 	int Nt=t.n_rows+1;
 	t.resize(Nt);
@@ -6801,7 +6816,7 @@ bool OmegaMaxEnt_data::compute_moments_tau_bosons()
 	
 	if (NNfit<5)
 	{
-		cout<<"compute_moments_tau_fermions(): imaginary time step is too large to extract the moments. Provide the first and second moments or use a smaller step.\n";
+		cout<<"compute_moments_tau_bosons(): imaginary time step is too large to extract the moments. Provide the first and second moments or use a smaller step.\n";
 		return false;
 	}
 	
@@ -9446,6 +9461,7 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	//cout<<"COMPUTING MOMENTS with compute_moments_tau_fermions()\n";
 	cout<<"COMPUTING MOMENTS\n";
 	
+	int pow_max_tau=20;
 	int Nfitmax_max=20;
 	
 	int Nv=1;
@@ -9527,6 +9543,7 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	npmin=3;
 	int Nfitmin=npmin+1;
 	int NNfit=Nfitmax-Nfitmin+1;
+	int Npfit=pow_max_tau-npmin+1;
 	
 	if (NNfit<5)
 	{
@@ -9538,7 +9555,7 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	mat M1b=zeros<mat>(NNfit,NNfit);
 	mat M2b=zeros<mat>(NNfit,NNfit);
 	mat M3b=zeros<mat>(NNfit,NNfit);
-	int p;
+	int p, pmax;
 	
 //	cout<<"Nfitmin: "<<Nfitmin<<endl;
 //	cout<<"Nfitmax: "<<Nfitmax<<endl;
@@ -9546,7 +9563,9 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	
 	for (Nfit=Nfitmin; Nfit<=Nfitmax; Nfit++)
 	{
-		for (np=npmin; np<Nfit-1; np++)
+		pmax=Nfit-1;
+		if (pmax>pow_max_tau) pmax=pow_max_tau;
+		for (np=npmin; np<=pmax; np++)
 		{
 			X=zeros<mat>(Nfit,np+1);
 			for (p=0; p<=np; p++)
@@ -9560,6 +9579,7 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 			AM=(X.t())*invCG*X;
 			BM=(X.t())*invCG*Gchi2tmp;
 			Mtmp=solve(AM,BM);
+		//	if (!solve(Mtmp,AM,BM))
 			M0b(Nfit-np-1,np-npmin)=-Mtmp(0);
 			M2b(Nfit-np-1,np-npmin)=-2*Mtmp(2);
 		 
@@ -9570,9 +9590,9 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 		 	AM=(X.t())*invCG*X;
 			BM=(X.t())*invCG*Gchi2tmp;
 			Mtmp=solve(AM,BM);
+		//	if (!solve(Mtmp,AM,BM))
 			M1b(Nfit-np-1,np-npmin)=Mtmp(1);
 			M3b(Nfit-np-1,np-npmin)=6*Mtmp(3);
- 
 		}
 	}
 
@@ -10040,7 +10060,14 @@ bool OmegaMaxEnt_data::fit_circle_arc(vec x, vec y, vec &arc_params)
 	mat A=X.t()*X;
 	vec B=X.t()*y;
 	
-	vec cfs=solve(A,B);
+	vec cfs;
+	
+//	vec cfs=solve(A,B);
+	
+	if (!solve(cfs,A,B))
+	{
+		return true;
+	}
 	
 	int jmid=floor(N/2);
 	
@@ -10135,8 +10162,14 @@ bool OmegaMaxEnt_data::fit_circle_arc(vec x, vec y, vec &arc_params)
 	H(1,0)=D2chi2xcyc;
 	H(1,1)=D2chi2yc;
 	
-	vec p=solve(H,gradchi2);
-	
+	vec p;
+	if (!solve(p,H,gradchi2))
+	{
+		return true;
+//		cout<<"fit_circle_arc(): solve failed, using solve_LU.\n";
+//		p=solve_LU(H,gradchi2);
+	}
+//	vec p=solve(H,gradchi2);
 	
 	double xc_prec=xc;
 	double yc_prec=yc;
@@ -10188,7 +10221,12 @@ bool OmegaMaxEnt_data::fit_circle_arc(vec x, vec y, vec &arc_params)
 		H(1,0)=D2chi2xcyc;
 		H(1,1)=D2chi2yc;
 		
-		p=solve(H,gradchi2);
+	//	p=solve(H,gradchi2);
+		if (!solve(p,H,gradchi2))
+		{
+			j--;
+			break;
+		}
 		
 		xc_prec=xc;
 		yc_prec=yc;
@@ -11285,6 +11323,7 @@ void OmegaMaxEnt_data::minimize()
 					{
 						alpha_too_small=true;
 						cout<<"warning: minimum value of alpha seems too small.\n";
+						cout<<"alpha= "<<alpha<<endl;
 					}
 				}
 			}
@@ -18851,6 +18890,53 @@ bool OmegaMaxEnt_data::compute_moments_omega_n_2()
 	
 	Ginf=mean(Ginfv.rows(j3-Nv,j3+Nv));
 	
+	if (displ_prep_figs)
+	{
+		graph_2D g0, g1, g2; //, g3, g4;
+		
+		vec x=wn.rows(jfitmin-1,jfitmax-1);
+		
+		char xl[]="$\\\\omega_n$";
+		char yl0[]="$G_{inf}$";
+		char yl[]="$M_0$";
+		char yl2[]="$M_1$";
+		//	char yl3[]="$M_2$";
+		//	char yl4[]="$M_3$";
+		
+		plot(g0, x, Ginfv, xl, yl0);
+		plot(g1, x, M0v, xl, yl);
+		plot(g2, x, M1v, xl, yl2);
+		//	plot(g3, x, M2v, xl, yl3);
+		//	plot(g4, x, M3v, xl, yl4);
+		
+		if (graph_2D::display_figures) cout<<"close the figures to resume execution\n";
+		graph_2D::show_figures();
+	}
+	
+	if (displ_adv_prep_figs)
+	{
+		graph_2D g3, g4;
+		//		graph_2D g0, g1, g2, g3, g4;
+		
+		vec x=wn.rows(jfitmin-1,jfitmax-1);
+		
+		char xl[]="$\\\\omega_n$";
+		//	char yl0[]="$G_{inf}$";
+		//	char yl[]="$M_0$";
+		//	char yl2[]="$M_1$";
+		char yl3[]="$M_2$";
+		char yl4[]="$M_3$";
+		
+		//	plot(g0, x, Ginfv, xl, yl0);
+		//	plot(g1, x, M0v, xl, yl);
+		//	plot(g2, x, M1v, xl, yl2);
+		plot(g3, x, M2v, xl, yl3);
+		plot(g4, x, M3v, xl, yl4);
+		
+		if (graph_2D::display_figures) cout<<"close the figures to resume execution\n";
+		graph_2D::show_figures();
+	}
+	
 //	cout<<"frequency range used to determine the moments: "<<wn(j0+jfitmin-Nv-1)<<" to "<<wn(j0+jfitmin+Nv-1)<<" (indices "<<j0+jfitmin-Nv-1<<" to "<<j0+jfitmin+Nv-1<<")"<<endl;
 	
 	int jfit0;
@@ -19220,6 +19306,7 @@ bool OmegaMaxEnt_data::compute_moments_omega_n_2()
 		if (!moments_provided && maxM>0) maxM=0;
 	}
 	
+/*
 	if (displ_prep_figs)
 	{
 		graph_2D g0, g1, g2; //, g3, g4;
@@ -19266,7 +19353,7 @@ bool OmegaMaxEnt_data::compute_moments_omega_n_2()
 		if (graph_2D::display_figures) cout<<"close the figures to resume execution\n";
 		graph_2D::show_figures();
 	}
-	
+	*/
 	return true;
 }
 
@@ -20360,6 +20447,9 @@ bool OmegaMaxEnt_data::set_covar_G_omega_n()
 
 bool OmegaMaxEnt_data::set_G_omega_n_fermions()
 {
+	bool allow_sign_change=true;
+	bool apply_sign_change=false;
+	
 	int j;
 	
 	signG=1;
@@ -20409,10 +20499,14 @@ bool OmegaMaxEnt_data::set_G_omega_n_fermions()
 	}
 	if (Gi.max()*Gi.min()<0)
 	{
-		cout<<"error: Im[G] must not change sign\n";
-		return false;
+		if (allow_sign_change) cout<<"warning: change of sign in Im[G]\n";
+		else
+		{
+			cout<<"error: Im[G] must not change sign\n";
+			return false;
+		}
 	}
-	if (Gi.max()>0)
+	if (Gi.max()>0 && apply_sign_change)
 	{
 		signG=-1;
 	}
