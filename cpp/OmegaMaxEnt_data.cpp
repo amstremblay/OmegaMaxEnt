@@ -3299,6 +3299,8 @@ void OmegaMaxEnt_data::compute_Re_chi_omega(vec Ap)
 
 void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 {
+	double R_wKK_SW=1e-2;
+	
 	cout<<"computing real part of the real-frequency Green function...\n";
 	
 	bool compute_G_Re_w_KK=false;
@@ -3410,6 +3412,81 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 	compute_G_Re_omega_from_A_t(t, At, G_Re_w);
 	Gr_Re_w=real(G_Re_w);
 	Gi_Re_w_FFT=imag(G_Re_w);
+	
+// use Kramers-Kronig around omega=0
+	double tol0=1e-4;
+	double tol_r=1e-8;
+	double tol_min=1e-10;
+	double Rwdw=1e-10;
+	
+	double DwKK=R_wKK_SW*SW;
+	
+	int jKK_l, jKK_r;
+	j=0;
+	while (j<Nw_dense && w_dense(j)<-DwKK) j++;
+	jKK_l=j-1;
+	while (j<Nw_dense && w_dense(j)<DwKK) j++;
+	jKK_r=j;
+	
+	vec wKK=w_dense.rows(jKK_l,jKK_r);
+	
+	int NwKK=jKK_r-jKK_l+1;
+//	cout<<"w_dense(jKK_l)	w_dense(jKK_r): "<<setw(20)<<w_dense(jKK_l)<<w_dense(jKK_r)<<endl;
+//	cout<<"NwKK: "<<NwKK<<endl;
+	
+	void *par[5];
+	fctPtr1 Ptr;
+	
+	par[0]=&w;
+	par[1]=&Nw_lims;
+	par[2]=&ws;
+	par[3]=&coeffs;
+	
+	if (!boson)
+		Ptr=static_cast<fctPtr1> (&OmegaMaxEnt_data::KK_integ);
+	else if (col_Gi>0)
+		Ptr=static_cast<fctPtr1> (&OmegaMaxEnt_data::KK_integ_boson);
+	else
+	{
+		cout<<"compute_Re_G_omega(): wrong function! Use compute_Re_chi_omega()\n";
+		return;
+	}
+	
+	vec tol;
+	
+	int Nint=4;
+	vec lims(Nint+1);
+	
+	lims(0)=w(0);
+	lims(4)=w(Nw-1);
+	if (w(Nw_lims(0))<0 && w(Nw_lims(1))>0)
+	{
+		lims(1)=w(Nw_lims(0));
+		lims(2)=0;
+		lims(3)=w(Nw_lims(1));
+	}
+	else if (w(Nw_lims(0))>0)
+	{
+		lims(1)=0;
+		lims(2)=w(Nw_lims(0));
+		lims(3)=w(Nw_lims(1));
+	}
+	else
+	{
+		lims(1)=w(Nw_lims(0));
+		lims(2)=w(Nw_lims(1));
+		lims(3)=0;
+	}
+	
+	Gr_Re_w_KK.zeros(NwKK,1);
+	tol=tol0*ones(NwKK,1);
+	KK_integrate(wKK, Ptr, par, Rwdw, Gr_Re_w_KK, tol, lims);
+	tol=tol_r*abs(Gr_Re_w_KK);
+	for (j=0; j<NwKK; j++) if (tol(j)<tol_min) tol(j)=tol_min;
+	KK_integrate(wKK, Ptr, par, Rwdw, Gr_Re_w_KK, tol, lims);
+	Gr_Re_w_KK=Gr_Re_w_KK/PI;
+	
+	Gr_Re_w.rows(jKK_l,jKK_r)=Gr_Re_w_KK;
 	
 	if (Ginf_finite)
 	{
@@ -9279,7 +9356,7 @@ bool OmegaMaxEnt_data::compute_dG_dtau()
 	int p;
 	for (Nfit=Nfitmin; Nfit<=Nfitmax; Nfit++)
 	{
-		for (np=npmin; np<Nfit-1; np++)
+		for (np=npmin; np<Nfit; np++)
 		{
 			X=zeros<mat>(Nfit,np+1);
 			for (p=0; p<=np; p++)
@@ -9461,7 +9538,7 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	//cout<<"COMPUTING MOMENTS with compute_moments_tau_fermions()\n";
 	cout<<"COMPUTING MOMENTS\n";
 	
-	int pow_max_tau=20;
+//	int pow_max_tau=20;
 	int Nfitmax_max=20;
 	
 	int Nv=1;
@@ -9543,7 +9620,7 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	npmin=3;
 	int Nfitmin=npmin+1;
 	int NNfit=Nfitmax-Nfitmin+1;
-	int Npfit=pow_max_tau-npmin+1;
+//	int Npfit=pow_max_tau-npmin+1;
 	
 	if (NNfit<5)
 	{
@@ -9564,7 +9641,7 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	for (Nfit=Nfitmin; Nfit<=Nfitmax; Nfit++)
 	{
 		pmax=Nfit-1;
-		if (pmax>pow_max_tau) pmax=pow_max_tau;
+//		if (pmax>pow_max_tau) pmax=pow_max_tau;
 		for (np=npmin; np<=pmax; np++)
 		{
 			X=zeros<mat>(Nfit,np+1);
@@ -9595,7 +9672,7 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 			M3b(Nfit-np-1,np-npmin)=6*Mtmp(3);
 		}
 	}
-
+	
 	Nv=1;
 	NvN=1;
 	int jmin=NvN;
@@ -9642,7 +9719,14 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 		varM3.submat(j,Nl-j,j,Nl-1)=2*varM3max*ones<rowvec>(j);
 	}
 	
-//	cout<<varM0<<endl;
+//	cout<<"M0b:\n"<<M0b<<endl;
+//	cout<<"varM0:\n"<<varM0<<endl;
+//	cout<<"M1b:\n"<<M1b<<endl;
+//	cout<<"varM1:\n"<<varM1<<endl;
+//	cout<<"M2b:\n"<<M2b<<endl;
+//	cout<<"varM2:\n"<<varM2<<endl;
+//	cout<<"M3b:\n"<<M3b<<endl;
+//	cout<<"varM3:\n"<<varM3<<endl;
 
 	varM0.min(jvmin,lvmin);
 	double M0_N=M0m(jvmin,lvmin);
@@ -10828,11 +10912,12 @@ double OmegaMaxEnt_data::S_i(double u, double c[])
 
 void OmegaMaxEnt_data::minimize()
 {
+	double tol_int_dA2=1e-3;
 	char alpha_output[100], file_name[200];
 	char alpha_output_format[]="%d \t alpha: % 1.4e,  Q: % 1.4e,  S: % 1.4e,  chi2: % 1.4e\n";
 	double mean_int_dA_prec, mean_int_dA_prec2, A1min, chi2prec, Q, S;
 	mat chi2, P, KGMj, U, V, mean_int_dA, M_save;
-	vec A1, AS, c1, c2, grS, B, B2, Pd, sK, sK2(NwA), D1, dA1, VPdA, dA_rel, DG;
+	vec A1, A1_prec, AS, c1, c2, grS, B, B2, Pd, sK, sK2(NwA), D1, dA1, dA1_prec, VPdA, dA_rel, DG;
 	vec G_out, G_V_out, errIm, errRe, M_out, M_V_out, eigv_ind;
 	uvec ind_c2_sat, ind_An, ind_Anul;
 	int i, ind_alpha, iter_dA;
@@ -10896,6 +10981,9 @@ void OmegaMaxEnt_data::minimize()
 	
 	Dw=(exp(-1)*default_model%dwS)/(2*PI);
 	
+//	int iter_dA2;
+//	vec DGM, Atmp, mod2_B, mod2_B2;
+	
 	while (ind_alpha<=Nalpha && alpha>=alpha_min)
 	{
 		A1=A;
@@ -10908,6 +10996,10 @@ void OmegaMaxEnt_data::minimize()
 		{
 			grS.rows(ind_An)=2*c2.rows(ind_An) % (A1.rows(ind_An)-Achange.rows(ind_An))+c1.rows(ind_An);
 		}
+		
+//		DGM=GM-KGM*A1;
+//		S=(A1%dwS)%log(A1/default_model);
+//		Q=DGM.t()*DGM-(alpha/(4*PI))*S;
 		
 		B=KGM.t()*(GM-KGM*A1)-(alpha/(4*PI))*grS;
 		
@@ -10940,6 +11032,9 @@ void OmegaMaxEnt_data::minimize()
 		
 		iter_dA=1;
 		
+		A1_prec=A1;
+		dA1_prec=dA1;
+		
 		A1=A1+dA1;
 		
 		ind_Anul=find(A1==0);
@@ -10950,7 +11045,7 @@ void OmegaMaxEnt_data::minimize()
 		
 		A1min=min(A1-Amin);
 
-		while ( (mean_int_dA(0)>tol_int_dA || A1min<0) && iter_dA<Niter_dA_max && (mean_int_dA(0)<mean_int_dA_prec || mean_int_dA(0)<mean_int_dA_prec2))
+		while ( iter_dA<Niter_dA_max && (mean_int_dA(0)>tol_int_dA || A1min<0) && mean_int_dA(0)<mean_int_dA_prec) // (mean_int_dA(0)<mean_int_dA_prec || mean_int_dA(0)<mean_int_dA_prec2))
 		{
 			grS=dwS % log(A1/default_model) + dwS;
 			ind_An=find(A1/default_model<rADchange);
@@ -10983,16 +11078,53 @@ void OmegaMaxEnt_data::minimize()
 			D1=sK2+1;
 			VPdA=B2/D1;
 			dA1=P*(V*VPdA);
-			
+	 
+		/*
+			iter_dA2=0;
+			while (iter_dA2<Niter_dA_max && mean_int_dA(0)>mean_int_dA_prec)
+			{
+				dA1=dA1/2;
+				mean_int_dA=abs(dA1.t())*dwS;
+				iter_dA2++;
+			}
+		
+			Atmp=A1+dA1;
+			grS=dwS % log(Atmp/default_model) + dwS;
+			ind_An=find(Atmp/default_model<rADchange);
+			if (ind_An.n_rows)
+			{
+				grS.rows(ind_An)=2*c2.rows(ind_An) % (Atmp.rows(ind_An)-Achange.rows(ind_An))+c1.rows(ind_An);
+			}
+			B2=KGM.t()*(GM-KGM*Atmp)-(alpha/(4*PI))*grS;
+			mod2_B2=B2.t()*B2;
+			if (mod2_B2<mod2_B)
+			{
+				A1=Atmp;
+				A1min=min(A1-Amin);
+				dA1_prec=dA1;
+			}
+		*/
+		
 			mean_int_dA_prec2=mean_int_dA_prec;
 			mean_int_dA_prec=mean_int_dA(0);
 			mean_int_dA=abs(dA1.t())*dwS;
 			
 			if (mean_int_dA(0)<mean_int_dA_prec)
 			{
+				A1_prec=A1;
+				dA1_prec=dA1;
 				A1=A1+dA1;
 				A1min=min(A1-Amin);
 			}
+		/*
+			else if (mean_int_dA(0)<mean_int_dA_prec2)
+			{
+				A1=A1_prec+dA1_prec/2;
+				dA1_prec=dA1_prec/2;
+				A1min=min(A1-Amin);
+				mean_int_dA=abs(dA1_prec.t())*dwS;
+			}
+		*/
 			
 			ind_Anul=find(A1==0);
 			if (ind_Anul.n_rows)
@@ -11004,10 +11136,16 @@ void OmegaMaxEnt_data::minimize()
 			iter_dA++;
 		}
 
+		if (mean_int_dA(0)>tol_int_dA2)
+		{
+			cout<<"Integrated absolute variation in A is too large. Stopping minimization.\n";
+			ind_alpha=Nalpha+1;
+		}
+		
 /*
 		if (mean_int_dA(0)>mean_int_dA_prec || iter_dA==Niter_dA_max)
 		{
-			cout<<"alpha= "<<alpha<<"  iteration: "<<iter_dA<<"  integrated absolute variation in A:   "<<setw(20)<<mean_int_dA_prec2<<setw(20)<<mean_int_dA_prec<<mean_int_dA(0)<<endl;
+			cout<<"alpha= "<<alpha<<"  iteration: "<<iter_dA<<"  integrated absolute variation in A: "<<setw(20)<<mean_int_dA_prec2<<setw(20)<<mean_int_dA_prec<<mean_int_dA(0)<<endl;
 		}
 */
 		chi2prec=chi2(0);
