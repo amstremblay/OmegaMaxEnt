@@ -3299,7 +3299,7 @@ void OmegaMaxEnt_data::compute_Re_chi_omega(vec Ap)
 
 void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 {
-	double R_wKK_SW=1e-2;
+//	double R_wKK_SW=1e-2;
 	
 	cout<<"computing real part of the real-frequency Green function...\n";
 	
@@ -3483,10 +3483,13 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 	KK_integrate(wKK, Ptr, par, Rwdw, Gr_Re_w_KK, tol, lims);
 	tol=tol_r*abs(Gr_Re_w_KK);
 	for (j=0; j<NwKK; j++) if (tol(j)<tol_min) tol(j)=tol_min;
+	
 	KK_integrate(wKK, Ptr, par, Rwdw, Gr_Re_w_KK, tol, lims);
 	Gr_Re_w_KK=Gr_Re_w_KK/PI;
 	
 	Gr_Re_w.rows(jKK_l,jKK_r)=Gr_Re_w_KK;
+	
+//	cout<<"real part of G computed\n";
 	
 	if (Ginf_finite)
 	{
@@ -3639,8 +3642,6 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 
 void OmegaMaxEnt_data::set_output_frequency_grid(vec extr_w)
 {
-	R_dw_min_dw_dense=5;
-	
 	double w_dense_min, w_dense_max, dw_dense, w_range;
 	vec Dw=w.rows(1,Nw-1)-w.rows(0,Nw-2);
 	double dw_min=Dw.min()/R_dw_min_dw_dense;
@@ -3691,8 +3692,8 @@ void OmegaMaxEnt_data::set_output_frequency_grid(vec extr_w)
 		while (w_dense_min<extr_w(0) || w_dense_max>extr_w(1))
 		{
 			Nw_p=Nw_p/2;
-			w_dense_p=w_dense_p(0,Nw_p);
-			w_dense_m=w_dense_m(0,Nw_p-1);
+			w_dense_p=w_dense_p.rows(0,Nw_p);
+			w_dense_m=w_dense_m.rows(0,Nw_p-1);
 			w_dense=join_vert(flipud(w_dense_m),w_dense_p);
 			Nw_dense=2*Nw_p+1;
 			w_dense_min=w_dense(0);
@@ -13321,6 +13322,8 @@ bool OmegaMaxEnt_data::Kernel_G_fermions_grid_transf()
 	
 	dcomplex i(0,1);
 	
+//	cout<<"left side\n";
+	
 	mat atang=atan((Wng % (Ug.cols(1,Nintg)-Ug.cols(0,Nintg-1)))/(1+w0l*(Ug.cols(1,Nintg)+Ug.cols(0,Nintg-1))+(pow(w0l,2)+pow(Wng,2)) % Ug.cols(0,Nintg-1) % Ug.cols(1,Nintg)));
 	mat logg=log((1.0+2*w0l*Ug.cols(1,Nintg)+pow(Ug.cols(1,Nintg),2) % (pow(Wng,2)+pow(w0l,2)))/(1.0+2*w0l*Ug.cols(0,Nintg-1)+pow(Ug.cols(0,Nintg-1),2) % (pow(Wng,2)+pow(w0l,2))));
 	
@@ -13376,6 +13379,8 @@ bool OmegaMaxEnt_data::Kernel_G_fermions_grid_transf()
 	
 	mat Wnc=wn*ones<rowvec>(Nintc);
 	mat Wc=ones<vec>(Nn)*wc.t();
+	
+//	cout<<"center\n";
 	
 	mat logc=log((pow(Wnc,2)+pow(Wc.cols(1,Nintc),2))/(pow(Wnc,2)+pow(Wc.cols(0,Nintc-1),2)));
 	mat atanc2=atan((Wnc % (Wc.cols(1,Nintc)-Wc.cols(0,Nintc-1)))/(Wc.cols(1,Nintc) % Wc.cols(0,Nintc-1)+pow(Wnc,2)));
@@ -13481,6 +13486,8 @@ bool OmegaMaxEnt_data::Kernel_G_fermions_grid_transf()
 	
 	mat Wnd=wn*ones<rowvec>(Nintd);
 	mat Ud=ones<vec>(Nn)*ud2;
+	
+//	cout<<"right side\n";
 	
 	mat atand=atan((Wnd % (Ud.cols(1,Nintd)-Ud.cols(0,Nintd-1)))/(1.0+w0r*(Ud.cols(1,Nintd)+Ud.cols(0,Nintd-1))+(pow(w0r,2)+pow(Wnd,2)) % Ud.cols(0,Nintd-1) % Ud.cols(1,Nintd)));
 	mat logd=log((1+2*w0r*Ud.cols(1,Nintd)+pow(Ud.cols(1,Nintd),2) % (pow(Wnd,2)+pow(w0r,2)))/(1+2*w0r*Ud.cols(0,Nintd-1)+pow(Ud.cols(0,Nintd-1),2) % (pow(Wnd,2)+pow(w0r,2))));
@@ -13598,6 +13605,7 @@ bool OmegaMaxEnt_data::Kernel_G_fermions_grid_transf()
 	graph_2D::show_figures();
 	*/
 	
+//	cout<<"moments\n";
 
 	rowvec Knorm_a_g=zeros<rowvec>(Nintg);
 	rowvec Knorm_b_g=zeros<rowvec>(Nintg);
@@ -15792,6 +15800,21 @@ bool OmegaMaxEnt_data::spline_matrix_grid_transf_G_part_2(vec x, uvec ind_xlims,
 	return true;
 }
 
+void OmegaMaxEnt_data::convert_matrix_to_band_format(mat M, mat &Mbf, int KL, int KU)
+{
+	int N=M.n_rows;
+	int ind_d;
+	
+	for (ind_d=KU; ind_d>=0; ind_d--)
+	{
+		Mbf.submat(KL+KU-ind_d,ind_d,KL+KU-ind_d,N-1)=trans(M.diag(ind_d));
+	}
+	for (ind_d=-1; ind_d>=-KL; ind_d--)
+	{
+		Mbf.submat(KL+KU-ind_d,0,KL+KU-ind_d,N+ind_d-1)=trans(M.diag(ind_d));
+	}
+}
+
 bool OmegaMaxEnt_data::spline_matrix_grid_transf_G_part(vec x, uvec ind_xlims, vec xs, mat &M)
 {
 	int Nx=x.n_rows;
@@ -15873,7 +15896,25 @@ bool OmegaMaxEnt_data::spline_matrix_grid_transf_G_part(vec x, uvec ind_xlims, v
 	Pg(4*j+3,NCg+j)=1;
 	
 	mat IB=eye(NCg,NCg);
-	mat invB=solve(B,IB);
+	
+	int N=NCg;
+	int INFO;
+	int *IPIV=new int[N];
+	int KD=3;
+	
+	mat invB=IB;
+	int Nbf=3*KD+1;
+	mat Bbf(Nbf,N);
+	convert_matrix_to_band_format(B, Bbf, KD, KD);
+
+	dgbsv_(&N, &KD, &KD, &N, Bbf.memptr(), &Nbf, IPIV, invB.memptr(), &N, &INFO );
+//	dgbsv_(&N, &KD, &KD, &NRHS, AB, &LDAB, IPIV, BR, &LDB, &INFO );
+	
+	delete [] IPIV;
+	
+//	mat invB2=solve(B,IB);
+//	cout<<"max(|invB-invB2|): "<<max(max(abs(invB-invB2)))<<endl;
+//	invB=solve(B,IB);
 	
 	mat IA=eye(Nx,Nx);
 	mat PA=IA.submat(0,0,Ng-1,Nx-1);
@@ -15955,7 +15996,21 @@ bool OmegaMaxEnt_data::spline_matrix_grid_transf_G_part(vec x, uvec ind_xlims, v
 	Pg(4*j+3,NCc+j+1)=1;
 	
 	IB.eye(NCc,NCc);
-	invB=solve(B,IB);
+	
+	N=NCc;
+	IPIV=new int[N];
+	invB=IB;
+	
+	Bbf.zeros(Nbf,N);
+	convert_matrix_to_band_format(B, Bbf, KD, KD);
+	
+	dgbsv_(&N, &KD, &KD, &N, Bbf.memptr(), &Nbf, IPIV, invB.memptr(), &N, &INFO );
+	
+	delete [] IPIV;
+ 
+//	mat invB2=solve(B,IB);
+//	cout<<"max(|invB-invB2|): "<<max(max(abs(invB-invB2)))<<endl;
+//	invB=solve(B,IB);
 	
 	PA=IA.submat(Ng-1,0,ind_xlims(1)-1,Nx-1);
 	
@@ -16036,7 +16091,21 @@ bool OmegaMaxEnt_data::spline_matrix_grid_transf_G_part(vec x, uvec ind_xlims, v
 	Pg(4*j+3,NCd+j)=1;
 	
 	IB.eye(NCd,NCd);
-	invB=solve(B,IB);
+	
+	N=NCd;
+	IPIV=new int[N];
+	invB=IB;
+	
+	Bbf.zeros(Nbf,N);
+	convert_matrix_to_band_format(B, Bbf, KD, KD);
+	
+	dgbsv_(&N, &KD, &KD, &N, Bbf.memptr(), &Nbf, IPIV, invB.memptr(), &N, &INFO );
+	
+	delete [] IPIV;
+	
+//	mat invB2=solve(B,IB);
+//	cout<<"max(|invB-invB2|): "<<max(max(abs(invB-invB2)))<<endl;
+//	invB=solve(B,IB);
 	
 	PA=IA.submat(ind_xlims(1)+1,0,Nx-1,Nx-1);
 	
@@ -22283,6 +22352,13 @@ bool OmegaMaxEnt_data::load_other_params()
 				R_dw_min_dw_dense=stod(str);
 				if (R_dw_min_dw_dense!=Other_params_fl_default_values[R_DW_MIN_DW_DENSE] || print_other_params)
 					cout<<Other_params_fl[R_DW_MIN_DW_DENSE]<<" "<<R_dw_min_dw_dense<<endl;
+			}
+			else if (str.compare(0,Other_params_fl[R_WKK_SW].size(),Other_params_fl[R_WKK_SW])==0)
+			{
+				str=str.substr(Other_params_fl[R_WKK_SW].size());
+				R_wKK_SW=stod(str);
+				if (R_wKK_SW!=Other_params_fl_default_values[R_WKK_SW] || print_other_params)
+					cout<<Other_params_fl[R_WKK_SW]<<" "<<R_wKK_SW<<endl;
 			}
 			
             getline(file,str);

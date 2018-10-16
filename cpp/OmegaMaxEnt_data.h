@@ -197,7 +197,7 @@ static map<Other_params_int_name, int> Other_params_int_default_values( {
 	{NSMOOTH_ERRG,0} } );
 //{NWN_TEST_METAL,10}, {N_ALPHA_MAX_FIGS,20},
 
-enum Other_params_fl_name {F_SW_STD_OMEGA, F_W_RANGE, RMIN_SW_DW, TOL_TEM, TOL_GINF, TOL_NORM, TOL_M1, TOL_M2, TOL_M3, DEFAULT_ERROR_G, ERR_NORM, DEFAULT_ERROR_M, TOL_MEAN_C1,TOL_STD_C1, TOL_RDW, RMIN_DW_DW, RDW_MAX, RW_GRID, RWD_GRID,  MIN_DEF_M, F_ALPHA_INIT, R_WIDTH_ASMIN, F_SMIN, DIFF_CHI2_MAX, TOL_INT_DA, R_C2_H, F_C2, POW_ALPHA_STEP_INIT, POW_ALPHA_STEP_MIN, CHI2_ALPHA_SMOOTH_RANGE_2, F_SCALE_LALPHA_LCHI2, FN_FIT_TAU_W, STD_NORM_PEAK_MAX, VAR_M2_PEAK_MAX, PEAK_WEIGHT_MIN, RMAX_DLCHI2_LALPHA, F_ALPHA_MIN, SAVE_ALPHA_RANGE, R_PEAK_WIDTH_DW, R_WNCUTOFF_WR, R_DW_DW, R_SW_WR, R_WMAX_WR_MIN,WGT_MIN_SM,R_SW_G_RE_W_RANGE,R_DW_MIN_DW_DENSE};
+enum Other_params_fl_name {F_SW_STD_OMEGA, F_W_RANGE, RMIN_SW_DW, TOL_TEM, TOL_GINF, TOL_NORM, TOL_M1, TOL_M2, TOL_M3, DEFAULT_ERROR_G, ERR_NORM, DEFAULT_ERROR_M, TOL_MEAN_C1,TOL_STD_C1, TOL_RDW, RMIN_DW_DW, RDW_MAX, RW_GRID, RWD_GRID,  MIN_DEF_M, F_ALPHA_INIT, R_WIDTH_ASMIN, F_SMIN, DIFF_CHI2_MAX, TOL_INT_DA, R_C2_H, F_C2, POW_ALPHA_STEP_INIT, POW_ALPHA_STEP_MIN, CHI2_ALPHA_SMOOTH_RANGE_2, F_SCALE_LALPHA_LCHI2, FN_FIT_TAU_W, STD_NORM_PEAK_MAX, VAR_M2_PEAK_MAX, PEAK_WEIGHT_MIN, RMAX_DLCHI2_LALPHA, F_ALPHA_MIN, SAVE_ALPHA_RANGE, R_PEAK_WIDTH_DW, R_WNCUTOFF_WR, R_DW_DW, R_SW_WR, R_WMAX_WR_MIN,WGT_MIN_SM,R_SW_G_RE_W_RANGE,R_DW_MIN_DW_DENSE, R_WKK_SW};
 //R_D2G_CHI_PEAK, TOL_R_G0_BETA, TOL_QUAD, F_CHI2_SAVE, F_CHI2_MIN, F_WIDTH_GRID_DENS,
 
 static map<Other_params_fl_name, string> Other_params_fl( {
@@ -246,7 +246,8 @@ static map<Other_params_fl_name, string> Other_params_fl( {
 	{R_WMAX_WR_MIN, "R_wmax_wr_min, minimum ratio of grid maximum frequency and main spectral range maximum frequency:"},
 	{WGT_MIN_SM, "wgt_min_sm, smallest relative weight in the smoothing of the added noise error:"},
 	{R_SW_G_RE_W_RANGE, "R_SW_G_Re_w_range, ratio of total frequency range and main spectral region for the real part of G:"},
-	{R_DW_MIN_DW_DENSE,"default ratio of the minimal step in the computation grid and the step in the output grid:"}} );
+	{R_DW_MIN_DW_DENSE,"R_dw_min_dw_dense, default ratio of the minimal step in the computation grid and the step in the output grid:"},
+	{R_WKK_SW,"R_wKK_SW, frequency region around zero where Re[G] is computed with Kramers-Kronig, divided by the spectral function width:"}} );
 //{R_D2G_CHI_PEAK,"R_d2G_chi_peak, for bosons, ratio that determines if searching for low frequency peak:"},
 //{TOL_R_G0_BETA,"tol_R_G0_Gbeta, tolerance on G(0)+G(beta)+1:"},
 //{TOL_QUAD,"tol_quad, adaptive integration tolerance:"},
@@ -300,7 +301,8 @@ static map<Other_params_fl_name, double> Other_params_fl_default_values( {
 	{R_WMAX_WR_MIN,3},
 	{WGT_MIN_SM,0.2},
 	{R_SW_G_RE_W_RANGE,10},
-	{R_DW_MIN_DW_DENSE,5}} );
+	{R_DW_MIN_DW_DENSE,5},
+	{R_WKK_SW,0.01}} );
 //{R_D2G_CHI_PEAK,0.1}, {TOL_R_G0_BETA,1.0e-8}, {TOL_QUAD,1.0e-10}, {F_CHI2_SAVE,1.0e3}, {F_CHI2_MIN,1.0e-6}, {F_WIDTH_GRID_DENS,1},
 
 static const char *OmegaMaxEnt_notice=R"(
@@ -449,6 +451,8 @@ extern "C++"
 		bool spline_matrix_grid_transf(vec w0, mat &M);
 		// define the hybrid spline matrix. Used by Kernel_G_fermions_grid_transf().
 		bool spline_matrix_grid_transf_G_part(vec x, uvec ind_xlims, vec xs, mat &M);
+		//convert a matrix to LAPACK band matrix format
+		void convert_matrix_to_band_format(mat M, mat &Mbf, int KL, int KU);
 		// define the hybrid spline matrix. Used by Kernel_G_fermions_grid_transf_2().
 		bool spline_matrix_grid_transf_G_part_2(vec x, uvec ind_xlims, vec xs, mat &M);
 		// compute values of the hybrid spline created using spline_matrix_G_part and a given spectrum. Used only during tests.
@@ -530,7 +534,7 @@ extern "C++"
         //! internal computation parameters
 		int Nn_min, Nn_max, Nw_min, Nw_max, Nn_fit_max, Nn_fit_fin, Niter_dA_max, Nalpha_max_figs, Nwsamp, Nsmooth_errG;
 		
-        double f_w_range, f_SW_std_omega, f_width_grid_dens, tol_tem, tol_G_inf, tol_norm, tol_R_G0_Gbeta, tol_M1, tol_M2, tol_M3, default_error_G, err_norm, default_error_M, tol_mean_C1, tol_std_C1, tol_rdw, Rmin_Dw_dw, Rdw_max, RW_grid, RWD_grid, minDefM, f_alpha_init, R_width_ASmin, f_Smin, diff_chi2_max, tol_int_dA, rc2H, fc2, pow_alpha_step_init, pow_alpha_step_min, chi2_alpha_smooth_range, f_scale_lalpha_lchi2, FNfitTauW, std_norm_peak_max, varM2_peak_max, peak_weight_min, RMAX_dlchi2_lalpha, f_alpha_min, save_alpha_range,  Rmin_SW_dw, R_peak_width_dw, R_wncutoff_wr, R_Dw_dw, R_SW_wr, R_wmax_wr_min, wgt_min_sm, R_SW_G_Re_w_range, R_dw_min_dw_dense;
+        double f_w_range, f_SW_std_omega, f_width_grid_dens, tol_tem, tol_G_inf, tol_norm, tol_R_G0_Gbeta, tol_M1, tol_M2, tol_M3, default_error_G, err_norm, default_error_M, tol_mean_C1, tol_std_C1, tol_rdw, Rmin_Dw_dw, Rdw_max, RW_grid, RWD_grid, minDefM, f_alpha_init, R_width_ASmin, f_Smin, diff_chi2_max, tol_int_dA, rc2H, fc2, pow_alpha_step_init, pow_alpha_step_min, chi2_alpha_smooth_range, f_scale_lalpha_lchi2, FNfitTauW, std_norm_peak_max, varM2_peak_max, peak_weight_min, RMAX_dlchi2_lalpha, f_alpha_min, save_alpha_range,  Rmin_SW_dw, R_peak_width_dw, R_wncutoff_wr, R_Dw_dw, R_SW_wr, R_wmax_wr_min, wgt_min_sm, R_SW_G_Re_w_range, R_dw_min_dw_dense, R_wKK_SW;
         //tol_quad, f_chi2save, f_chi2min, Nwn_test_metal, R_d2G_chi_peak,
 		
 		//! input parameters
