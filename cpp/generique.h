@@ -123,7 +123,7 @@ class generique
 	//! coefficients are returned in 'coef'
 	void pade_cont_frac_coef_rec(dcomplex *func, dcomplex *x, int N, dcomplex *coef) { for (int j=0; j<N; j++) coef[j]=pade_recursion(j, j, func, x, coef); }
 	
-	//! recursive formula in the Pad? coefficients calculation
+	//! recursive formula in the Pade coefficients calculation
 	dcomplex pade_recursion(int indFunc, int indx, dcomplex *func, dcomplex *x, dcomplex *coef);
 	
 	//! compute the coefficients in the continued fraction representation of the Pade aproximant,

@@ -98,7 +98,7 @@ static map<Grig_params_name, string> Grid_params( {
 	{OUTPUT_GRID_PARAMS,"output real frequency grid parameters (w_min dw w_max):"}} );
 
 
-enum Preproc_comp_params_name {EVAL_MOMENTS, MAX_M, DEFAULT_MODEL_CENTER, DEFAULT_MODEL_WIDTH, DEFAULT_MODEL_SHAPE, DEFAULT_MODEL_FILE, INIT_SPECTR_FUNC_FILE};
+enum Preproc_comp_params_name {EVAL_MOMENTS, MAX_M, DEFAULT_MODEL_CENTER, DEFAULT_MODEL_WIDTH, DEFAULT_MODEL_SHAPE, DEFAULT_MODEL_FILE, INIT_SPECTR_FUNC_FILE,COMPUTE_PADE,N_PADE,ETA_PADE};
 //, INTERP_TYPE
 //PEAKED_DEFAULT_MODEL,
 
@@ -109,7 +109,10 @@ static map<Preproc_comp_params_name, string> Preproc_comp_params( {
 	{DEFAULT_MODEL_WIDTH, "default model half width (default: standard deviation):"},
 	{DEFAULT_MODEL_SHAPE, "default model shape parameter (default: 2):"},
 	{DEFAULT_MODEL_FILE, "default model file:"},
-	{INIT_SPECTR_FUNC_FILE, "initial spectral function file:"} } );
+	{INIT_SPECTR_FUNC_FILE, "initial spectral function file:"},
+	{COMPUTE_PADE,"compute Pade result (yes/[no]):"},
+	{N_PADE,"number of frequencies for Pade:"},
+	{ETA_PADE,"imaginary part of frequency in Pade:"}} );
 //{INTERP_TYPE, "interpolation type (spline (default), quad, lin):"}
 //	{PEAKED_DEFAULT_MODEL, "use peaked default model (yes/no):"},
 
@@ -504,6 +507,8 @@ extern "C++"
 		//destroy the unwanted files created during the calculation
 		void remove_files();
 		
+		// compute the real frequency Green function with a Pade approximant
+		void compute_G_with_Pade(vec wP, int NP, double eta);
 		//compute the Fourier transform of the spectrum A(t)=TF[A(w)]
 		void Fourier_transform_spectrum(vec wFt, vec AwFt, vec &t, cx_vec &At);
 		//compute the real frequency Green function from A(t)
@@ -538,24 +543,24 @@ extern "C++"
         //tol_quad, f_chi2save, f_chi2min, Nwn_test_metal, R_d2G_chi_peak,
 		
 		//! input parameters
-		string input_dir_in, input_dir, data_file_name_in, data_file_name, boson_in, tau_GF_in, tem_in, M0_in, M1_in, errM1_in, M2_in, errM2_in, M3_in, errM3_in, omega_n_trunc_in, G_omega_inf_in, col_Gr_in, col_Gi_in, error_file_in, error_file, col_errGr_in, col_errGi_in, covar_re_re_file_in, covar_re_re_file, covar_im_im_file_in, covar_im_im_file, covar_re_im_file_in, covar_re_im_file, col_Gtau_in, col_errGtau_in, covar_tau_file_in, covar_tau_file, cutoff_wn_in, SW_in, SC_in, w_origin_in, step_omega_in, grid_omega_file_in, grid_omega_file, use_grid_params_in, omega_grid_params_in, eval_moments_in, maxM_in, def_model_file_in, def_model_file, init_spectr_func_file_in, init_spectr_func_file, default_model_center_in, default_model_width_in, default_model_shape_in, non_uniform_grid_in, Ginf_finite_in, noise_params_in, output_dir_in, output_dir, output_dir_fin, output_name_suffix, output_name_format, w_sample_in, Nalpha_in, alpha_min_in, alpha_init_in, alpha_opt_max_in, alpha_opt_min_in, alpha_save_max_in, alpha_save_min_in, A_ref_file, A_ref_file_in, def_model_output_file_name, A_opt_name_format, A_opt_err_name_format, output_G_format, output_error_format, auto_corr_error_G_format, output_G_opt_format, error_G_opt_format, auto_corr_error_G_opt_format, output_moments_format, output_moments_opt_format, chi2_vs_alpha_format, Asamp_vs_alpha_format, samp_freq_format, A_opt_name, A_opt_name_rm, A_opt_err_name_rm, A_alpha_min_name, output_G_opt_rm, error_G_opt_rm, auto_corr_error_G_opt_rm, output_moments_opt_rm, G_re_omega_name, G_re_t_name, output_grid_params_in;
+		string input_dir_in, input_dir, data_file_name_in, data_file_name, boson_in, tau_GF_in, tem_in, M0_in, M1_in, errM1_in, M2_in, errM2_in, M3_in, errM3_in, omega_n_trunc_in, G_omega_inf_in, col_Gr_in, col_Gi_in, error_file_in, error_file, col_errGr_in, col_errGi_in, covar_re_re_file_in, covar_re_re_file, covar_im_im_file_in, covar_im_im_file, covar_re_im_file_in, covar_re_im_file, col_Gtau_in, col_errGtau_in, covar_tau_file_in, covar_tau_file, cutoff_wn_in, SW_in, SC_in, w_origin_in, step_omega_in, grid_omega_file_in, grid_omega_file, use_grid_params_in, omega_grid_params_in, eval_moments_in, maxM_in, def_model_file_in, def_model_file, init_spectr_func_file_in, init_spectr_func_file, default_model_center_in, default_model_width_in, default_model_shape_in, non_uniform_grid_in, Ginf_finite_in, noise_params_in, output_dir_in, output_dir, output_dir_fin, output_name_suffix, output_name_format, w_sample_in, Nalpha_in, alpha_min_in, alpha_init_in, alpha_opt_max_in, alpha_opt_min_in, alpha_save_max_in, alpha_save_min_in, A_ref_file, A_ref_file_in, def_model_output_file_name, A_opt_name_format, A_opt_err_name_format, output_G_format, output_error_format, auto_corr_error_G_format, output_G_opt_format, error_G_opt_format, auto_corr_error_G_opt_format, output_moments_format, output_moments_opt_format, chi2_vs_alpha_format, Asamp_vs_alpha_format, samp_freq_format, A_opt_name, A_opt_name_rm, A_opt_err_name_rm, A_alpha_min_name, output_G_opt_rm, error_G_opt_rm, auto_corr_error_G_opt_rm, output_moments_opt_rm, G_re_omega_name, Pade_G_re_omega_name, G_re_t_name, output_grid_params_in, compute_Pade_in, N_Pade_in, eta_Pade_in;
 		//interp_type, interp_type_in, alpha_save_in,
 		
-        bool use_grid_params, use_const_dw, use_exp_step, displ_prep_figs, displ_adv_prep_figs, print_other_params, boson, tau_GF, initialize, initialize_maxent, execute_maxent, save_spec_func, print_alpha, displ_optim_figs, cov_diag, moments_provided, eval_moments, covm_diag, wc_exists, w_exists, SW_set, SC_set, peak_exists, read_params, read_other_params, params_loaded, other_params_loaded, M1_set, M2_set, main_spectral_region_set, A_ref_change, show_optimal_alpha_figs, show_lowest_alpha_figs, show_alpha_curves, preproc_complete, Du_constant, non_uniform_grid, w_origin_set, interactive_mode, Ginf_finite, alpha_min_too_high, error_provided;
+        bool use_grid_params, use_const_dw, use_exp_step, displ_prep_figs, displ_adv_prep_figs, print_other_params, boson, tau_GF, initialize, initialize_maxent, execute_maxent, save_spec_func, print_alpha, displ_optim_figs, cov_diag, moments_provided, eval_moments, covm_diag, wc_exists, w_exists, SW_set, SC_set, peak_exists, read_params, read_other_params, params_loaded, other_params_loaded, M1_set, M2_set, main_spectral_region_set, A_ref_change, show_optimal_alpha_figs, show_lowest_alpha_figs, show_alpha_curves, preproc_complete, Du_constant, non_uniform_grid, w_origin_set, interactive_mode, Ginf_finite, alpha_min_too_high, error_provided, compute_Pade;
 		//peaked_default_model, save_Aopt_only,
 		
-        double tem, cutoff_wn, SW, SC, w_origin, step_omega, signG, alpha0, alpha0_default, alpha, pow_alpha_step, alpha_min_default, alpha_min, alpha_opt_max, alpha_opt_min, M0, errM0, M1, errM1, M2, errM2, M3, errM3, std_omega, omega_n_trunc, wl, wr, w0l, w0r, dwl, dwr, dw_peak, M0t, M1n, default_model_width, default_model_center, default_model_shape, dlchi2_lalpha_min, dlchi2_lalpha_max, alpha_save_max, alpha_save_min, lchi2_lalpha_lgth, G_omega_inf;
+        double tem, cutoff_wn, SW, SC, w_origin, step_omega, signG, alpha0, alpha0_default, alpha, pow_alpha_step, alpha_min_default, alpha_min, alpha_opt_max, alpha_opt_min, M0, errM0, M1, errM1, M2, errM2, M3, errM3, std_omega, omega_n_trunc, wl, wr, w0l, w0r, dwl, dwr, dw_peak, M0t, M1n, default_model_width, default_model_center, default_model_shape, dlchi2_lalpha_min, dlchi2_lalpha_max, alpha_save_max, alpha_save_min, lchi2_lalpha_lgth, G_omega_inf, eta_Pade;
 		//chi2save, chi2min, alpha_save,
         
         uint col_Gr, col_errGr, col_errGi, col_Gtau, col_errGtau, Nalpha, Nn, Nn_all, indG_0, indG_f, NM, NMinput, NM_odd, NM_even, Nw, NwA, Nwc, Nw_dense, jfit, ind_cutoff_wn, NGM, Nalpha_max, NAprec, ind0, Ntau, Nn_as_min;
 		uvec n, n_all, Nw_lims;
-		int maxM, maxM_default, col_Gi, ind_alpha_vec, NnC, ind_curv, ind_curv0, ind_noise, N_params_noise;
+		int maxM, maxM_default, col_Gi, ind_alpha_vec, NnC, ind_curv, ind_curv0, ind_noise, N_params_noise, N_Pade;
 		
 		mat K, KGM, KGMw, invDw, KG_V, KM, KM_V, COV, CRR, CII, CRI, COVM, COVMfit, Ctau, Ctau_all, green_data, error_data, grid_w_data, def_data, Aw_data, Aref_data, Aprec, Aw_samp;
 		rowvec omega_grid_params, w_sample, noise_params, output_grid_params;
 		uvec w_sample_ind;
 		vec w_dense, Gr_Re_w, Gi_Re_w, Gr_Re_w_KK, Gi_Re_w_KK, Gi_Re_w_FFT, Gr, Gi, Gchi2, G_V, GM, wn, wn_all, errGr, errGi, errG, errGtau, M, M_V, errM, M_even, M_odd, Mfit, ws, A, A0, Amin, wc, w, wA, dwS, default_model, w_ref, A_ref, chi2_vec, alpha_vec, S_vec, M_ord, Gtau, tau, dlchi2_lalpha_1, curv_lchi2_lalpha_1, grid_dens, P_alpha_G, log_P_alpha_G, dG_tau, d2G_tau, d3G_tau, t_re;
-		cx_vec G, G_all, G_t_re;
+		cx_vec G, G_all, G_t_re, GR_Pade;
 		cx_mat Kcx;
 		uword ind_P_alpha_G_max;
 		vec integ_P_A_alpha, pow_alphaD_vec;

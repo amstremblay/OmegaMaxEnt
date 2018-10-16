@@ -108,6 +108,7 @@ void OmegaMaxEnt_data::loop_run()
 	compute_P_alpha_G=false;
 	gaussian_grid_density=false;
 	uniform_grid=false;
+	compute_Pade=false;
 	ind_noise=0;
 	N_params_noise=0;
 	
@@ -1807,6 +1808,8 @@ bool OmegaMaxEnt_data::preproc()
 	peak_exists=false;
 	main_spectral_region_set=false;
 	
+	vec extr_w(2);
+	
 	if (!boson) maxM_default=3;
 	else maxM_default=1;
 	
@@ -2081,6 +2084,9 @@ bool OmegaMaxEnt_data::preproc()
 		cout<<"frequency step at the grid origin: "<<w(jc+1)-w(jc)<<endl;
 		cout<<"number of real frequencies in the grid: "<<Nw<<endl;
 		
+		extr_w(0)=w(0);
+		extr_w(1)=w(Nw-1);
+		
 		if (displ_prep_figs)
 		{
 			vec diff_w=w.rows(1,Nw-1)-w.rows(0,Nw-2);
@@ -2230,8 +2236,8 @@ bool OmegaMaxEnt_data::preproc()
 		
 		if (cov_diag) NnC=Nn/2;
 		else NnC=Nn;
-		
-		integrate_P_A_alpha();
+	
+//		integrate_P_A_alpha();
 		
 		if (displ_adv_prep_figs)
 		{
@@ -2508,6 +2514,9 @@ bool OmegaMaxEnt_data::preproc()
 		cout<<"boundaries of main spectral range: "<<wl<<", "<<wr<<endl;
 		cout<<"frequency step at the grid origin: "<<w(jc+1)-w(jc)<<endl;
 		cout<<"number of real frequencies in the grid: "<<Nw<<endl;
+		
+		extr_w(0)=w(0);
+		extr_w(1)=w(Nw-1);
 		
 		if (displ_prep_figs)
 		{
@@ -2899,6 +2908,9 @@ bool OmegaMaxEnt_data::preproc()
 		cout<<"frequency step at the grid origin: "<<w(1)-w(0)<<endl;
 		cout<<"number of real frequencies in the grid: "<<Nw<<endl;
 		
+		extr_w(0)=-w(Nw-1);
+		extr_w(1)=w(Nw-1);
+		
 		if (displ_prep_figs)
 		{
 			vec diff_w=w.rows(1,Nw-1)-w.rows(0,Nw-2);
@@ -3067,8 +3079,102 @@ bool OmegaMaxEnt_data::preproc()
 			graph_2D::show_figures();
 		}
 	}
+
+	set_output_frequency_grid(extr_w);
+	
+	if (compute_Pade)
+	{
+		Pade_G_re_omega_name="Pade_Green_function";
+		if (output_name_suffix.size())
+		{
+			if (output_name_suffix[0]!='_') Pade_G_re_omega_name+='_';
+			Pade_G_re_omega_name+=output_name_suffix;
+		}
+		Pade_G_re_omega_name+=".dat";
+		
+		if (!N_Pade_in.size() || N_Pade>Nn) N_Pade=Nn;
+		if (!eta_Pade_in.size()) eta_Pade=tem/100;
+		
+		compute_G_with_Pade(w_dense, N_Pade, eta_Pade);
+	}
 	
 	return true;
+}
+
+void OmegaMaxEnt_data::compute_G_with_Pade(vec wP, int NP, double eta)
+{
+	cout<<"computing real frequency Green function with Pade\n";
+	
+	int j;
+	int NwP=wP.n_rows;
+	
+//	cout<<"N_Pade: "<<N_Pade<<endl;
+//	cout<<"eta: "<<eta<<endl;
+//	cout<<"NwP: "<<NwP<<endl;
+	
+	cx_vec coeffs(NP,fill::zeros);
+	cx_vec iwn(Nn,fill::zeros);
+	cx_vec cx_wP(NwP,fill::zeros);
+	vec eta_v=eta*ones<vec>(NwP);
+	
+	cx_wP.set_real(wP);
+	cx_wP.set_imag(eta_v);
+	
+	iwn.set_imag(wn);
+	
+	pade_cont_frac_coef_rec(G.memptr(), iwn.memptr(), NP, coeffs.memptr());
+
+//	cout<<"Pade coefficients computed\n";
+	
+	GR_Pade.zeros(NwP);
+	
+	for (j=0; j<NwP; j++)
+		GR_Pade(j)=pade(cx_wP(j), NP, iwn.memptr(), coeffs.memptr());
+	
+//	cout<<"retarded Green function computed\n";
+	
+	vec G_Pade_re=real(GR_Pade);
+	vec G_Pade_im=imag(GR_Pade);
+	
+	vec imG=-imag(GR_Pade);
+	
+	mat M_save(NwP,3);
+	M_save.col(0)=wP;
+	M_save.col(1)=G_Pade_re;
+	M_save.col(2)=G_Pade_im;
+	
+	string file_name_str=Pade_G_re_omega_name;
+	remove(file_name_str.c_str());
+	M_save.save(file_name_str,raw_ascii);
+	
+	if (displ_prep_figs)
+	{
+		graph_2D g1, g2;
+		char xl[]="$\\\\omega$";
+		char lgdr[]="Re$[G(\\omega)]$";
+		char lgdi[]="Im$[G(\\omega)]$";
+		char attr_r[]="'b'";
+		char attr_i[]="'r'";
+		char title[]="Real frequency result from Pade";
+		g1.add_data(wP.memptr(),G_Pade_re.memptr(),NwP);
+		g1.add_attribute(attr_r);
+		g1.add_to_legend(lgdr);
+		g1.add_data(wP.memptr(),G_Pade_im.memptr(),NwP);
+		g1.add_attribute(attr_i);
+		g1.add_to_legend(lgdi);
+		g1.set_axes_labels(xl,NULL);
+		g1.add_title(title);
+		g1.curve_plot();
+		
+		g2.add_data(wP.memptr(),imG.memptr(),NwP);
+		g2.add_attribute(attr_i);
+		g2.set_axes_labels(xl,NULL);
+		g2.add_title("-Im$[G(\\omega)]$");
+		g2.curve_plot();
+		
+		if (graph_2D::display_figures) cout<<"close the figures to resume execution\n";
+		graph_2D::show_figures();
+	}
 }
 
 void OmegaMaxEnt_data::compute_Re_chi_omega(vec Ap)
@@ -3082,12 +3188,14 @@ void OmegaMaxEnt_data::compute_Re_chi_omega(vec Ap)
 	vec coeffs;
 	
 	spline_chi_part(w, Nw_lims, ws, Ap, coeffs);
-	
+
+/*
 	vec extr_w(2);
 	extr_w(0)=-w(Nw-1);
 	extr_w(1)=w(Nw-1);
 	
-	set_output_frequency_grid(extr_w);
+//	set_output_frequency_grid(extr_w);
+*/
 	
 /*
 	double w_dense_min, w_dense_max, w_range, dw_dense;
@@ -3311,11 +3419,13 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 	
 	spline_G_part(w, Nw_lims, ws, Ap/2, coeffs);
 	
+/*
 	vec extr_w(2);
 	extr_w(0)=w(0);
 	extr_w(1)=w(Nw-1);
 	
 	set_output_frequency_grid(extr_w);
+*/
 	
 /*
 	double w_dense_min, w_dense_max, dw_dense, w_range;
@@ -15908,7 +16018,6 @@ bool OmegaMaxEnt_data::spline_matrix_grid_transf_G_part(vec x, uvec ind_xlims, v
 	convert_matrix_to_band_format(B, Bbf, KD, KD);
 
 	dgbsv_(&N, &KD, &KD, &N, Bbf.memptr(), &Nbf, IPIV, invB.memptr(), &N, &INFO );
-//	dgbsv_(&N, &KD, &KD, &NRHS, AB, &LDAB, IPIV, BR, &LDB, &INFO );
 	
 	delete [] IPIV;
 	
@@ -21598,6 +21707,43 @@ bool OmegaMaxEnt_data::load_input_params()
 				}
 				else
 					init_spectr_func_file.clear();
+			}
+			else if (str.compare(0,Preproc_comp_params[COMPUTE_PADE].size(),Preproc_comp_params[COMPUTE_PADE])==0)
+			{
+				str=str.substr(Preproc_comp_params[COMPUTE_PADE].size());
+				remove_spaces_ends(str);
+				if (compute_Pade_in.compare(str))	initialize=true;
+				compute_Pade_in=str;
+				compute_Pade=false;
+				if (compute_Pade_in.size())
+				{
+					cout<<Preproc_comp_params[COMPUTE_PADE]<<" "<<compute_Pade_in<<endl;
+					if (compute_Pade_in.compare("yes")==0) compute_Pade=true;
+				}
+			}
+			else if (str.compare(0,Preproc_comp_params[N_PADE].size(),Preproc_comp_params[N_PADE])==0)
+			{
+				str=str.substr(Preproc_comp_params[N_PADE].size());
+				remove_spaces_ends(str);
+				if (N_Pade_in.compare(str))	initialize=true;
+				N_Pade_in=str;
+				if (N_Pade_in.size())
+				{
+					cout<<Preproc_comp_params[N_PADE]<<" "<<N_Pade_in<<endl;
+					N_Pade=stoi(N_Pade_in);
+				}
+			}
+			else if (str.compare(0,Preproc_comp_params[ETA_PADE].size(),Preproc_comp_params[ETA_PADE])==0)
+			{
+				str=str.substr(Preproc_comp_params[ETA_PADE].size());
+				remove_spaces_ends(str);
+				if (eta_Pade_in.compare(str))	initialize=true;
+				eta_Pade_in=str;
+				if (eta_Pade_in.size())
+				{
+					cout<<Preproc_comp_params[ETA_PADE]<<" "<<eta_Pade_in<<endl;
+					eta_Pade=stod(eta_Pade_in);
+				}
 			}
 			else if (str.compare(0,Preproc_exec_params[PREPROSSESS_ONLY].size(),Preproc_exec_params[PREPROSSESS_ONLY])==0)
 			{
