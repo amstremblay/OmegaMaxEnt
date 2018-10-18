@@ -1816,6 +1816,8 @@ bool OmegaMaxEnt_data::preproc()
 	peak_exists=false;
 	main_spectral_region_set=false;
 	
+	bool use_Riemann_integ=true;
+	
 	vec extr_w(2);
 	
 	if (!boson) maxM_default=3;
@@ -1865,7 +1867,7 @@ bool OmegaMaxEnt_data::preproc()
 //			cout<<"eval_moments: "<<eval_moments<<endl;
 			if ( (!moments_provided && maxM>=0) || eval_moments )
 			{
-				if (!Ginf_finite)
+				if (!Ginf_finite || G_omega_inf_in.size())
 				{
 					if (!compute_moments_omega_n())
 					{
@@ -2173,21 +2175,17 @@ bool OmegaMaxEnt_data::preproc()
 			default_model.zeros(Nw);
 			default_model.rows(1,Nw-2)=1/dwS;
 		}
-		
-		Kernel_G_fermions_Riemann_integ();
-		
-	/*
+	
 		if (!uniform_grid)
-			Kernel_G_fermions_grid_transf();
+		{
+			if (use_Riemann_integ) Kernel_G_fermions_Riemann_integ();
+			else Kernel_G_fermions_grid_transf();
+		}
 		else
 			Kernel_G_fermions_grid_transf_omega();
-	*/
-		
-		if (NM>0)
-		{
-			mat norm_DM_tmp=KM.row(0)*default_model;
-			default_model=M0*default_model/norm_DM_tmp(0);
-		}
+
+		mat norm_DM_tmp=KM.row(0)*default_model;
+		default_model=M0*default_model/norm_DM_tmp(0);
 		
 		diagonalize_covariance();
 		
@@ -2302,7 +2300,7 @@ bool OmegaMaxEnt_data::preproc()
 			jfit=0;
 			if ( (!moments_provided && maxM>0) || eval_moments )
 			{
-				if (!Ginf_finite)
+				if (!Ginf_finite || G_omega_inf_in.size())
 				{
 					if (!compute_moments_omega_n())
 					{
@@ -3153,7 +3151,9 @@ void OmegaMaxEnt_data::compute_G_with_Pade(vec wP, int NP, double eta)
 	vec G_Pade_re=real(GR_Pade);
 	vec G_Pade_im=imag(GR_Pade);
 	
-	vec imG=-2*imag(GR_Pade);
+	vec imG=-2*G_Pade_im;
+	
+	if (Ginf_finite) G_Pade_re=G_Pade_re+G_omega_inf;
 	
 	mat M_save(NwP,3);
 	M_save.col(0)=wP;
@@ -3213,80 +3213,6 @@ void OmegaMaxEnt_data::compute_Re_chi_omega(vec Ap)
 	
 	spline_chi_part(w, Nw_lims, ws, Ap, coeffs);
 
-/*
-	vec extr_w(2);
-	extr_w(0)=-w(Nw-1);
-	extr_w(1)=w(Nw-1);
-	
-//	set_output_frequency_grid(extr_w);
-*/
-	
-/*
-	double w_dense_min, w_dense_max, w_range, dw_dense;
-	vec Dw=w.rows(1,Nw-1)-w.rows(0,Nw-2);
-	double dw_min=Dw.min();
-	
-	if (output_grid_params_in.size() && output_grid_params(0)<0 && output_grid_params(2)>0 && output_grid_params(0)>-w(Nw-1) && output_grid_params(2)<w(Nw-1))
-	{
-		w_dense_min=output_grid_params(0);
-		w_dense_max=output_grid_params(2);
-		dw_dense=output_grid_params(1);
- 
-		w_range=w_dense_max-w_dense_min;
-		if (dw_dense>2*dw_min)
-		{
-			cout<<"compute_Re_G_omega(): invalid output frequency step. Setting it to minimum step in the grid.\n";
-			dw_dense=dw_min;
-		}
-	
-		int Nw_p, Nw_m;
-		Nw_p=(int)floor(w_dense_max/dw_dense)+1;
-		Nw_m=(int)floor(fabs(w_dense_min)/dw_dense);
-		
-		vec w_dense_p=linspace<vec>(0,Nw_p-1,Nw_p)*dw_dense;
-		vec w_dense_m=-linspace<vec>(1,Nw_m,Nw_m)*dw_dense;
-		w_dense=join_vert(flipud(w_dense_m),w_dense_p);
-		Nw_dense=Nw_p+Nw_m;
-	}
-	else
-	{
-		if (output_grid_params_in.size())
-		{
-			cout<<"compute_Re_G_omega(): invalid output real frequency grid parameters.\n";
-			if (output_grid_params(0)>0 || output_grid_params(2)<0) cout<<"omega=0 is not in the provided frequency range\n";
-			if (output_grid_params(0)<w(0) || output_grid_params(2)>w(Nw-1)) cout<<"at least one extremum is outside the range where the spectrum is defined\n";
-			cout<<"Using the default output real frequency grid.\n";
-		}
-		dw_dense=dw_min;
-		w_range=R_SW_G_Re_w_range*SW;
-		double log2_Nw_dense=ceil(log2(w_range/dw_dense));
-		int Nw_p=pow(2,log2_Nw_dense-1);
-		vec w_dense_p=linspace<vec>(0,Nw_p,Nw_p+1)*dw_dense;
-		vec w_dense_m=-linspace<vec>(1,Nw_p,Nw_p)*dw_dense;
-		w_dense=join_vert(flipud(w_dense_m),w_dense_p);
-		Nw_dense=2*Nw_p+1;
-		w_dense_min=w_dense(0);
-		w_dense_max=w_dense(Nw_dense-1);
-		w_range=w_dense_max-w_dense_min;
-		
-		while (w_dense_min<-w(Nw-1) || w_dense_max>w(Nw-1))
-		{
-			Nw_p=Nw_p/2;
-			w_dense_p=w_dense_p(0,Nw_p);
-			w_dense_m=w_dense_m(0,Nw_p-1);
-			w_dense=join_vert(flipud(w_dense_m),w_dense_p);
-			Nw_dense=2*Nw_p+1;
-			w_dense_min=w_dense(0);
-			w_dense_max=w_dense(Nw_dense-1);
-			w_range=w_dense_max-w_dense_min;
-		}
-	}
-	
-	cout<<"number of points in the output real frequency grid: "<<Nw_dense<<endl;
-	cout<<"frequency step of the output real frequency grid: "<<dw_dense<<endl;
-	cout<<"minimum frequency of the output real frequency grid: "<<w_dense_min<<endl;
-	cout<<"maximum frequency of the output real frequency grid: "<<w_dense_max<<endl;
-*/
 	
 	int j0;
 	j=0;
@@ -3431,8 +3357,6 @@ void OmegaMaxEnt_data::compute_Re_chi_omega(vec Ap)
 
 void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 {
-//	double R_wKK_SW=1e-2;
-	
 	cout<<"computing real part of the real-frequency Green function...\n";
 	
 	bool compute_G_Re_w_KK=false;
@@ -3442,81 +3366,6 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 	vec coeffs;
 	
 	spline_G_part(w, Nw_lims, ws, Ap/2, coeffs);
-	
-/*
-	vec extr_w(2);
-	extr_w(0)=w(0);
-	extr_w(1)=w(Nw-1);
-	
-	set_output_frequency_grid(extr_w);
-*/
-	
-/*
-	double w_dense_min, w_dense_max, dw_dense, w_range;
-	vec Dw=w.rows(1,Nw-1)-w.rows(0,Nw-2);
-	double dw_min=Dw.min();
-	
-	if (output_grid_params_in.size() && output_grid_params(0)<0 && output_grid_params(2)>0 && output_grid_params(0)>w(0) && output_grid_params(2)<w(Nw-1))
-	{
-		w_dense_min=output_grid_params(0);
-		w_dense_max=output_grid_params(2);
-		dw_dense=output_grid_params(1);
-	
-		w_range=w_dense_max-w_dense_min;
-		if (dw_dense>2*dw_min)
-		{
-			cout<<"compute_Re_G_omega(): invalid output frequency step. Setting it to minimum step in the grid.\n";
-			dw_dense=dw_min;
-		}
-	
-		int Nw_p, Nw_m;
-		Nw_p=(int)floor(w_dense_max/dw_dense)+1;
-		Nw_m=(int)floor(fabs(w_dense_min)/dw_dense);
-		
-		vec w_dense_p=linspace<vec>(0,Nw_p-1,Nw_p)*dw_dense;
-		vec w_dense_m=-linspace<vec>(1,Nw_m,Nw_m)*dw_dense;
-		w_dense=join_vert(flipud(w_dense_m),w_dense_p);
-		Nw_dense=Nw_p+Nw_m;
-	}
-	else
-	{
-		if (output_grid_params_in.size())
-		{
-			cout<<"compute_Re_G_omega(): invalid output real frequency grid parameters.\n";
-			if (output_grid_params(0)>0 || output_grid_params(2)<0) cout<<"omega=0 is not in the provided frequency range\n";
-			if (output_grid_params(0)<w(0) || output_grid_params(2)>w(Nw-1)) cout<<"at least one extremum is outside the range where the spectrum is defined\n";
-			cout<<"Using the default output real frequency grid.\n";
-		}
-		dw_dense=dw_min;
-		w_range=R_SW_G_Re_w_range*SW;
-		double log2_Nw_dense=ceil(log2(w_range/dw_dense));
-		int Nw_p=pow(2,log2_Nw_dense-1);
-		vec w_dense_p=linspace<vec>(0,Nw_p,Nw_p+1)*dw_dense;
-		vec w_dense_m=-linspace<vec>(1,Nw_p,Nw_p)*dw_dense;
-		w_dense=join_vert(flipud(w_dense_m),w_dense_p);
-		Nw_dense=2*Nw_p+1;
-		w_dense_min=w_dense(0);
-		w_dense_max=w_dense(Nw_dense-1);
-		w_range=w_dense_max-w_dense_min;
-		
-		while (w_dense_min<w(0) || w_dense_max>w(Nw-1))
-		{
-			Nw_p=Nw_p/2;
-			w_dense_p=w_dense_p(0,Nw_p);
-			w_dense_m=w_dense_m(0,Nw_p-1);
-			w_dense=join_vert(flipud(w_dense_m),w_dense_p);
-			Nw_dense=2*Nw_p+1;
-			w_dense_min=w_dense(0);
-			w_dense_max=w_dense(Nw_dense-1);
-			w_range=w_dense_max-w_dense_min;
-		}
-	}
- 
- cout<<"number of points in the output real frequency grid: "<<Nw_dense<<endl;
- cout<<"frequency step of the output real frequency grid: "<<dw_dense<<endl;
- cout<<"minimum frequency of the output real frequency grid: "<<w_dense_min<<endl;
- cout<<"maximum frequency of the output real frequency grid: "<<w_dense_max<<endl;
-	*/
 	
 	spline_val_G_part(w_dense, w, Nw_lims, ws, coeffs, Gi_Re_w);
 	Gi_Re_w=-Gi_Re_w;
@@ -8439,7 +8288,10 @@ bool OmegaMaxEnt_data::set_G_omega_n_bosons()
 	else
 		Gi.zeros(Nn);
 	
-	if (G_omega_inf_in.size()) Gr=Gr-G_omega_inf;
+	if (G_omega_inf_in.size())
+	{
+		Gr=Gr-G_omega_inf;
+	}
 	
 	indG_0=0, indG_f=Nn-1;
 	wn_sign_change=false;
@@ -11110,8 +10962,6 @@ void OmegaMaxEnt_data::minimize()
 	DG=GM-KGM*A;
 	chi2=DG.t()*DG;
 	
-	double shift_l_P_alpha=322;
-	
 	SD=(exp(-1)*default_model.t()*dwS)/(2*PI);
 	
 	Dw=(exp(-1)*default_model%dwS)/(2*PI);
@@ -11679,7 +11529,6 @@ void OmegaMaxEnt_data::minimize_increase_alpha()
 	double xc, yc, x1, y1;
 	
 	c1=(log(rADchange)+1)*dwS;
-	//vec c2_0=-fc2*c1/(2*exp(-1)*default_model);
 	vec c2_alpha=2*PI*alpha_c2_max*ones<vec>(NwA);
 	
 	ind_alpha=1;
@@ -13232,7 +13081,7 @@ bool OmegaMaxEnt_data::Kernel_G_fermions_grid_transf_2()
 
 bool OmegaMaxEnt_data::Kernel_G_fermions_Riemann_integ()
 {
-	cout<<"defining kernel matrix...\n";
+//	cout<<"defining kernel matrix...\n";
 	
 	int i,j;
 	
@@ -13427,7 +13276,7 @@ bool OmegaMaxEnt_data::Kernel_G_fermions_Riemann_integ()
 	 graph_2D::show_figures();
 */
 	
-	cout<<"kernel matrix defined.\n";
+//	cout<<"kernel matrix defined.\n";
 	
 	return true;
 }
@@ -20472,8 +20321,8 @@ bool OmegaMaxEnt_data::compute_moments_omega_n()
 		plot(g1, x, M0v, xl, yl);
 		plot(g2, x, M1v, xl, yl2);
 		
-//		if (graph_2D::display_figures) cout<<"close the figures to resume execution\n";
-//		graph_2D::show_figures();
+		if (graph_2D::display_figures) cout<<"close the figures to resume execution\n";
+		graph_2D::show_figures();
 	}
 	
 //	if (displ_adv_prep_figs)
@@ -21003,7 +20852,10 @@ bool OmegaMaxEnt_data::set_G_omega_n_fermions()
 	Gr=green_data.col(col_Gr-1);
 	Gi=green_data.col(col_Gi-1);
 	
-	if (G_omega_inf_in.size()) Gr=Gr-G_omega_inf;
+	if (G_omega_inf_in.size())
+	{
+		Gr=Gr-G_omega_inf;
+	}
 	
 	indG_0=0, indG_f=Nn-1;
 	wn_sign_change=false;
@@ -22570,21 +22422,6 @@ bool OmegaMaxEnt_data::load_other_params()
                 if (rc2H!=Other_params_fl_default_values[R_C2_H] || print_other_params)
                     cout<<Other_params_fl[R_C2_H]<<" "<<rc2H<<endl;
             }
-            else if (str.compare(0,Other_params_fl[F_C2].size(),Other_params_fl[F_C2])==0)
-            {
-                str=str.substr(Other_params_fl[F_C2].size());
-                fc2=stod(str);
-                if (fc2!=Other_params_fl_default_values[F_C2] || print_other_params)
-                    cout<<Other_params_fl[F_C2]<<" "<<fc2<<endl;
-            }
-			/*
-            else if (str.compare(0,Other_params_fl[F_CHI2_MIN].size(),Other_params_fl[F_CHI2_MIN])==0)
-            {
-                str=str.substr(Other_params_fl[F_CHI2_MIN].size());
-                f_chi2min=stod(str);
-                if (f_chi2min!=Other_params_fl_default_values[F_CHI2_MIN] || print_other_params)
-                    cout<<Other_params_fl[F_CHI2_MIN]<<" "<<f_chi2min<<endl;
-            }*/
             else if (str.compare(0,Other_params_fl[POW_ALPHA_STEP_INIT].size(),Other_params_fl[POW_ALPHA_STEP_INIT])==0)
             {
                 str=str.substr(Other_params_fl[POW_ALPHA_STEP_INIT].size());
