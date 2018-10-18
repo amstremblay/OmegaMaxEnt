@@ -414,6 +414,8 @@ extern "C++"
 		bool Kernel_G_fermions_grid_transf_2();
 		// old version of the kernel calculation without the grid transformation.
 		bool Kernel_G_fermions();
+		// simplest possible kernel definition using a Riemann integral
+		bool Kernel_G_fermions_Riemann_integ();
 		// compute the discrete version of the kernel in the spectral representation for a general bosonic Green function. The grid transformation has not been implemented for that case yet.
 		bool Kernel_G_bosons();
 		// compute the discrete version of the kernel in the spectral representation for the even correlation function case. The grid transformation has not been implemented for that case yet.
