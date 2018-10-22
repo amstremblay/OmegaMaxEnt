@@ -51,6 +51,8 @@ OmegaMaxEnt_data::OmegaMaxEnt_data(int arg_N, char *args[])
 {
     input_params_file_name=default_input_params_file_name;
 	
+	interactive_mode=true;
+	
     if (arg_N>1)
     {
         for (int j=1; j<arg_N; j++)
@@ -64,6 +66,11 @@ OmegaMaxEnt_data::OmegaMaxEnt_data(int arg_N, char *args[])
 				else if (!strcmp(args[j],"-np"))
 				{
 					graph_2D::print_to_file=false;
+				}
+				else if (!strcmp(args[j],"-ni"))
+				{
+					interactive_mode=false;
+					graph_2D::display_figures=false;
 				}
                 else
                     cout<<"invalid option: "<<args[j]<<'\n';
@@ -82,7 +89,6 @@ OmegaMaxEnt_data::OmegaMaxEnt_data(int arg_N, char *args[])
 	preproc_complete=false;
 	initialize_maxent=true;
 	print_other_params=false;
-	interactive_mode=true;
 	time_params_file=NULL;
 	time_other_params_file=NULL;
 	ind_alpha_vec=0;
@@ -118,33 +124,36 @@ void OmegaMaxEnt_data::loop_run()
 	ofstream warnings_file("warnings.txt");
 	set_stream_err2(warnings_file);
 	
-	ifstream file("license_info_displayed");
-	if (!file)
+	if (interactive_mode)
 	{
-		file.clear();
-		ofstream outputfile("license_info_displayed");
-		outputfile.close();
-		display_license();
-	}
-	else
-	{
-		file.close();
-		file.open("notice_displayed");
+		ifstream file("license_info_displayed");
 		if (!file)
 		{
 			file.clear();
-			ofstream outputfile("notice_displayed");
+			ofstream outputfile("license_info_displayed");
 			outputfile.close();
-			display_notice();
+			display_license();
 		}
 		else
 		{
 			file.close();
-			cout<<OmegaMaxEnt_notice<<endl;
+			file.open("notice_displayed");
+			if (!file)
+			{
+				file.clear();
+				ofstream outputfile("notice_displayed");
+				outputfile.close();
+				display_notice();
+			}
+			else
+			{
+				file.close();
+				cout<<OmegaMaxEnt_notice<<endl;
+			}
 		}
 	}
 	
-	if (graph_2D::print_to_file) cout<<"Figures can be displayed by executing the command \"python OmegaMaxEnt_figs_#.py\" where # is one of the indices in file figs_ind.dat\n";
+	if (graph_2D::print_to_file && interactive_mode) cout<<"Figures can be displayed by executing the command \"python OmegaMaxEnt_figs_#.py\" where # is one of the indices in file figs_ind.dat\n";
 	
 	do
 	{
@@ -1816,7 +1825,7 @@ bool OmegaMaxEnt_data::preproc()
 	peak_exists=false;
 	main_spectral_region_set=false;
 	
-	bool use_Riemann_integ=true;
+	bool use_Riemann_integ=false;
 	
 	vec extr_w(2);
 	
@@ -3120,6 +3129,8 @@ void OmegaMaxEnt_data::compute_G_with_Pade(vec wP, int NP, double eta)
 {
 	cout<<"computing real frequency Green function with Pade\n";
 	
+//	double tol_sv=1e-4;
+	
 	int j;
 	int NwP=wP.n_rows;
 	
@@ -3164,15 +3175,55 @@ void OmegaMaxEnt_data::compute_G_with_Pade(vec wP, int NP, double eta)
 	remove(file_name_str.c_str());
 	M_save.save(file_name_str,raw_ascii);
 	
+/*
+	vec A_pi(Nw,fill::zeros), sK;
+	mat U, V;
+	if (!svd(U,sK,V,K,"std"))
+	{
+		cout<<"compute_G_with_Pade(): svd of kernel failed\n";
+	}
+	
+	int dim_wn=2*Nn;
+	int dim_w=Nw-2;
+	int ind0=1;
+	int indf=Nw-2;
+	if (col_Gi<=0)
+	{
+		dim_wn=Nn;
+		dim_w=Nw-1;
+		ind0=0;
+	}
+	
+	mat invK(dim_w,dim_wn,fill::zeros);
+	
+	int dim_min=dim_wn;
+	if (dim_w<dim_min) dim_min=dim_w;
+	
+//	cout<<setw(10)<<0<<sK(0)<<endl;
+	
+	invK(0,0)=1.0/sK(0);
+	j=1;
+	while (j<dim_min && sK(j)>tol_sv*sK(0))
+	{
+//		cout<<setw(10)<<j<<sK(j)<<endl;
+		invK(j,j)=1.0/sK(j);
+		j++;
+	}
+	
+	A_pi.rows(ind0,indf)=V*invK*U.t()*Gchi2;
+*/
+
 	if (displ_prep_figs)
 	{
 		graph_2D g1, g2;
 		char xl[]="$\\\\omega$";
 		char lgdr[]="Re$[G(\\omega)]$";
 		char lgdi[]="Im$[G(\\omega)]$";
+		char lgdA[]="-2Im$[G(\\omega)]$";
 		char attr_r[]="'b'";
 		char attr_i[]="'r'";
 		char title[]="Real frequency result from Pade";
+		
 		g1.add_data(wP.memptr(),G_Pade_re.memptr(),NwP);
 		g1.add_attribute(attr_r);
 		g1.add_to_legend(lgdr);
@@ -3185,11 +3236,14 @@ void OmegaMaxEnt_data::compute_G_with_Pade(vec wP, int NP, double eta)
 		
 		g2.add_data(wP.memptr(),imG.memptr(),NwP);
 		g2.add_attribute(attr_i);
+		g2.add_to_legend(lgdA);
+//		g2.add_data(w.memptr(),A_pi.memptr(),Nw);
+//		g2.add_attribute("'m'");
+//		g2.add_to_legend("$A_{pinv}$");
 		if (A_ref_file.size() && A_ref.n_rows)
 		{
 			g2.add_data(w_ref.memptr(),A_ref.memptr(),w_ref.n_rows);
 			g2.add_attribute("'m'");
-			g2.add_to_legend("-2Im$[G(\\omega)]$");
 			g2.add_to_legend("reference spectrum");
 		}
 		g2.set_axes_labels(xl,NULL);
@@ -3213,7 +3267,6 @@ void OmegaMaxEnt_data::compute_Re_chi_omega(vec Ap)
 	
 	spline_chi_part(w, Nw_lims, ws, Ap, coeffs);
 
-	
 	int j0;
 	j=0;
 	while (j<Nw_dense && w_dense(j)<0) j++;
@@ -3258,6 +3311,19 @@ void OmegaMaxEnt_data::compute_Re_chi_omega(vec Ap)
 	{
 		Gr_Re_w=Gr_Re_w+G_omega_inf;
 	}
+	
+/*
+	double DwKK=R_wKK_SW*SW;
+	
+	int jKK_r;
+	j=j0;
+	while (j<Nw_dense && w_dense(j)<DwKK) j++;
+	jKK_r=j;
+	
+	vec wKK=w_dense.rows(j0,jKK_r);
+	
+	int NwKK=jKK_r+1;
+*/
 	
 	M_save.col(0)=w_dense;
 	M_save.col(1)=Gr_Re_w;
@@ -3638,8 +3704,8 @@ void OmegaMaxEnt_data::set_output_frequency_grid(vec extr_w)
 		w_range=w_dense_max-w_dense_min;
 		if (dw_dense>2*dw_min)
 		{
-			cout<<"compute_Re_G_omega(): invalid output frequency step. Setting it to minimum step in the grid.\n";
-			dw_dense=dw_min;
+			cout<<"compute_Re_G_omega() warning: output frequency step might be too large to resolve the spectrum well.\n";
+		//	dw_dense=dw_min;
 		}
 		
 		int Nw_p, Nw_m;
@@ -22093,7 +22159,6 @@ bool OmegaMaxEnt_data::load_input_params()
 	}
 	else
 	{
-		//		display_license();
 		cout<<"Input parameters file not found. Creating default one.\n";
 		create_default_input_params_file();
 		return false;
