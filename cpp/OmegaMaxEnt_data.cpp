@@ -1531,13 +1531,13 @@ void OmegaMaxEnt_data::loop_run()
 								xlims[1]=w(Nw-1);
 							*/
 								
-								gv[ind_fig]->add_data(w_dense.memptr(), Gr_Re_w.memptr(), Nw_dense);
+								gv[ind_fig]->add_data(w_out.memptr(), Gr_Re_w.memptr(), Nw_out);
 								gv[ind_fig]->add_attribute(attrG1);
 								gv[ind_fig]->add_to_legend(lgdG1);
 							//	gv[ind_fig]->add_data(w_dense.memptr(), Gr_Re_w_KK.memptr(), Nw_dense);
 							//	gv[ind_fig]->add_attribute(attrG3);
 							//	gv[ind_fig]->add_to_legend(lgdG3);
-								gv[ind_fig]->add_data(w_dense.memptr(), Gi_Re_w.memptr(), Nw_dense);
+								gv[ind_fig]->add_data(w_out.memptr(), Gi_Re_w.memptr(), Nw_out);
 								gv[ind_fig]->add_attribute(attrG2);
 								gv[ind_fig]->add_to_legend(lgdG2);
 							//	gv[ind_fig]->add_data(w_dense.memptr(), Gi_Re_w_FFT.memptr(), Nw_dense);
@@ -1580,7 +1580,7 @@ void OmegaMaxEnt_data::loop_run()
 								if (compute_Pade && GR_Pade.n_rows)
 								{
 									vec imG_Pade=-2*imag(GR_Pade);
-									gv[ind_fig]->add_data(w_dense.memptr(),imG_Pade.memptr(),Nw_dense);
+									gv[ind_fig]->add_data(w_out.memptr(),imG_Pade.memptr(),Nw_out);
 									gv[ind_fig]->add_to_legend(lgd_Pade);
 									A_all=join_vert(A_all,imG_Pade);
 								}
@@ -3119,7 +3119,7 @@ bool OmegaMaxEnt_data::preproc()
 		if (!N_Pade_in.size() || N_Pade>Nn) N_Pade=Nn;
 		if (!eta_Pade_in.size()) eta_Pade=tem/100;
 		
-		compute_G_with_Pade(w_dense, N_Pade, eta_Pade);
+		compute_G_with_Pade(w_out, N_Pade, eta_Pade);
 	}
 	
 	return true;
@@ -3305,12 +3305,8 @@ void OmegaMaxEnt_data::compute_Re_chi_omega(vec Ap)
 	
 	compute_G_Re_omega_from_A_t(t, At, G_Re_w);
 	Gr_Re_w=-real(G_Re_w);
+	dG_w=-dG_w;
 	Gi_Re_w_FFT=-imag(G_Re_w);
-	
-	if (Ginf_finite)
-	{
-		Gr_Re_w=Gr_Re_w+G_omega_inf;
-	}
 	
 /*
 	double DwKK=R_wKK_SW*SW;
@@ -3325,7 +3321,26 @@ void OmegaMaxEnt_data::compute_Re_chi_omega(vec Ap)
 	int NwKK=jKK_r+1;
 */
 	
-	M_save.col(0)=w_dense;
+	if (w_out(0)!=w_dense(0) || w_out(Nw_out-1)!=w_dense(Nw_dense-1) || Nw_out==Nw_dense)
+	{
+		coeffs.zeros(4*(Nw_dense-1));
+		spline_coeffs_rel(w_dense.memptr(), Gi_Re_w.memptr(), Nw_dense, coeffs.memptr());
+		spline_val(w_out, w_dense, coeffs, Gi_Re_w);
+		
+		coeffs.zeros();
+		coeffs(0)=dG_w(0);
+		coeffs(1)=dG_w(1);
+		spline_coeffs_rel(w_dense.memptr(), Gr_Re_w.memptr(), Nw_dense, coeffs.memptr());
+		spline_val(w_out, w_dense, coeffs, Gr_Re_w);
+	}
+	
+	if (Ginf_finite)
+	{
+		Gr_Re_w=Gr_Re_w+G_omega_inf;
+	}
+	
+	M_save.zeros(Nw_out,3);
+	M_save.col(0)=w_out;
 	M_save.col(1)=Gr_Re_w;
 	M_save.col(2)=Gi_Re_w;
 	
@@ -3540,20 +3555,6 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 	
 //	cout<<"real part of G computed\n";
 	
-	if (Ginf_finite)
-	{
-		Gr_Re_w=Gr_Re_w+G_omega_inf;
-	}
-	
-	M_save.col(0)=w_dense;
-	M_save.col(1)=Gr_Re_w;
-	M_save.col(2)=Gi_Re_w;
-	
-	file_name_str=output_dir_fin;
-	file_name_str+=G_re_omega_name;
-	remove(file_name_str.c_str());
-	M_save.save(file_name_str,raw_ascii);
-	
 	if (compute_G_Re_w_KK)
 	{
 		double tol0=1e-4;
@@ -3613,6 +3614,37 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 		KK_integrate(w_dense, Ptr, par, Rwdw, Gr_Re_w_KK, tol, lims);
 		Gr_Re_w_KK=Gr_Re_w_KK/PI;
 	}
+	
+	if (w_out(0)!=w_dense(0) || w_out(Nw_out-1)!=w_dense(Nw_dense-1) || Nw_out==Nw_dense)
+	{
+		coeffs.zeros(4*(Nw_dense-1));
+		spline_coeffs_rel(w_dense.memptr(), A_dense.memptr(), Nw_dense, coeffs.memptr());
+		vec A_out;
+		spline_val(w_out, w_dense, coeffs, A_out);
+		Gi_Re_w=-A_out/2;
+		if (boson) Gi_Re_w=w_out%Gi_Re_w;
+		
+		coeffs.zeros();
+		coeffs(0)=dG_w(0);
+		coeffs(1)=dG_w(1);
+		spline_coeffs_rel(w_dense.memptr(), Gr_Re_w.memptr(), Nw_dense, coeffs.memptr());
+		spline_val(w_out, w_dense, coeffs, Gr_Re_w);
+	}
+	
+	if (Ginf_finite)
+	{
+		Gr_Re_w=Gr_Re_w+G_omega_inf;
+	}
+	
+	M_save.zeros(Nw_out,3);
+	M_save.col(0)=w_out;
+	M_save.col(1)=Gr_Re_w;
+	M_save.col(2)=Gi_Re_w;
+	
+	file_name_str=output_dir_fin;
+	file_name_str+=G_re_omega_name;
+	remove(file_name_str.c_str());
+	M_save.save(file_name_str,raw_ascii);
 	
 /*
 	vec Atmp=-Gi_Re_w/PI;
@@ -3691,10 +3723,72 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 
 void OmegaMaxEnt_data::set_output_frequency_grid(vec extr_w)
 {
-	double w_dense_min, w_dense_max, dw_dense, w_range;
+	double w_dense_min, w_dense_max, dw_dense, w_range, w_out_min, w_out_max, dw_out;
 	vec Dw=w.rows(1,Nw-1)-w.rows(0,Nw-2);
 	double dw_min=Dw.min()/R_dw_min_dw_dense;
 	
+	dw_dense=dw_min;
+	w_range=R_SW_G_Re_w_range*SW;
+	double log2_Nw_dense=ceil(log2(w_range/dw_dense));
+	int Nw_p=pow(2,log2_Nw_dense-1);
+	vec w_dense_p=linspace<vec>(0,Nw_p,Nw_p+1)*dw_dense;
+	vec w_dense_m=-linspace<vec>(1,Nw_p,Nw_p)*dw_dense;
+	w_dense=join_vert(flipud(w_dense_m),w_dense_p);
+	Nw_dense=2*Nw_p+1;
+	w_dense_min=w_dense(0);
+	w_dense_max=w_dense(Nw_dense-1);
+	w_range=w_dense_max-w_dense_min;
+	
+	while (w_dense_min<extr_w(0) || w_dense_max>extr_w(1))
+	{
+		Nw_p=Nw_p/2;
+		w_dense_p=w_dense_p.rows(0,Nw_p);
+		w_dense_m=w_dense_m.rows(0,Nw_p-1);
+		w_dense=join_vert(flipud(w_dense_m),w_dense_p);
+		Nw_dense=2*Nw_p+1;
+		w_dense_min=w_dense(0);
+		w_dense_max=w_dense(Nw_dense-1);
+		w_range=w_dense_max-w_dense_min;
+	}
+	
+	if (output_grid_params_in.size() && output_grid_params(0)<0 && output_grid_params(2)>0 && output_grid_params(0)>extr_w(0) && output_grid_params(2)<extr_w(1))
+	{
+		w_out_min=output_grid_params(0);
+		w_out_max=output_grid_params(2);
+		dw_out=output_grid_params(1);
+		
+		w_range=w_out_max-w_out_min;
+		if (dw_out>Dw.min())
+		{
+			cout<<"set_output_frequency_grid() warning: output frequency step might be too large to resolve the spectrum well.\n";
+		}
+		
+		Nw_out=(int)round(w_range/dw_out)+1;
+		w_out=linspace<vec>(0,Nw_out-1,Nw_out)*dw_out+w_out_min;
+		
+	/*
+		int Nw_m;
+		Nw_p=(int)floor(w_out_max/dw_out)+1;
+		Nw_m=(int)floor(fabs(w_out_min)/dw_out);
+		
+		vec w_out_p=linspace<vec>(0,Nw_p-1,Nw_p)*dw_out;
+		vec w_out_m=-linspace<vec>(1,Nw_m,Nw_m)*dw_out;
+		w_out=join_vert(flipud(w_dense_m),w_dense_p);
+		Nw_out=Nw_p+Nw_m;
+	 */
+	}
+	else
+	{
+		w_out=w_dense;
+		Nw_out=Nw_dense;
+	}
+	
+	cout<<"number of points in the output real frequency grid: "<<Nw_out<<endl;
+	cout<<"frequency step of the output grid: "<<w_out(1)-w_out(0)<<endl;
+	cout<<"minimum frequency of the output grid: "<<w_out(0)<<endl;
+	cout<<"maximum frequency of the output grid: "<<w_out(Nw_out-1)<<endl;
+	
+/*
 	if (output_grid_params_in.size() && output_grid_params(0)<0 && output_grid_params(2)>0 && output_grid_params(0)>extr_w(0) && output_grid_params(2)<extr_w(1))
 	{
 		w_dense_min=output_grid_params(0);
@@ -3750,11 +3844,12 @@ void OmegaMaxEnt_data::set_output_frequency_grid(vec extr_w)
 			w_range=w_dense_max-w_dense_min;
 		}
 	}
+*/
 	
-	cout<<"number of points in the output real frequency grid: "<<Nw_dense<<endl;
-	cout<<"frequency step of the output real frequency grid: "<<dw_dense<<endl;
-	cout<<"minimum frequency of the output real frequency grid: "<<w_dense_min<<endl;
-	cout<<"maximum frequency of the output real frequency grid: "<<w_dense_max<<endl;
+//	cout<<"number of points in the output real frequency grid: "<<Nw_dense<<endl;
+//	cout<<"frequency step of the output real frequency grid: "<<dw_dense<<endl;
+//	cout<<"minimum frequency of the output real frequency grid: "<<w_dense_min<<endl;
+//	cout<<"maximum frequency of the output real frequency grid: "<<w_dense_max<<endl;
 }
 
 void OmegaMaxEnt_data::compute_G_Re_omega_from_A_t(vec t, cx_vec At, cx_vec &G_Re_omega)
@@ -3806,6 +3901,15 @@ void OmegaMaxEnt_data::compute_G_Re_omega_from_A_t(vec t, cx_vec At, cx_vec &G_R
 	G_Re_omega.zeros(Nw_dense);
 	
 	G_Re_omega=At(0)/wG+M1/pow(wG,2)+(exp(I*wG*2.0*PI/dw)*d2Atmax-d2At0)/pow(wG,3)+I*TF_d3At%(exp(I*wG*dt)-1.0)/pow(wG,4);
+	
+	dG_w.zeros(2);
+	
+	dG_w(0)=-real(At(0))/pow(wG(0),2)-2*M1/pow(wG(0),3)-3*real(exp(I*wG(0)*2.0*PI/dw)*d2Atmax-d2At0)/pow(wG(0),4);
+	dG_w(1)=-real(At(0))/pow(wG(Nw_dense-1),2)-2*M1/pow(wG(Nw_dense-1),3)-3*real(exp(I*wG(Nw_dense-1)*2.0*PI/dw)*d2Atmax-d2At0)/pow(wG(Nw_dense-1),4);
+	
+//	double dw_dense=w_dense(1)-w_dense(0);
+//	cout<<"dG_w(0): "<<setw(20)<<dG_w(0)<<real(G_Re_omega(1)-G_Re_omega(0))/dw_dense<<endl;
+//	cout<<"dG_w(1): "<<setw(20)<<dG_w(1)<<real(G_Re_omega(Nw_dense-1)-G_Re_omega(Nw_dense-2))/dw_dense<<endl;
 	
 	wG(jw0)=w_dense(jw0);
 	
@@ -7212,11 +7316,10 @@ bool OmegaMaxEnt_data::compute_moments_tau_bosons()
 	COVM.zeros(NM,NM);
 	COVM.diag()=square(errM);
 	
-	compute_dG_dtau();
+	dG_dtau_computed=compute_dG_dtau();
 	
 	return true;
 }
-
 
 bool OmegaMaxEnt_data::Kernel_G_bosons()
 {
@@ -8621,7 +8724,7 @@ bool OmegaMaxEnt_data::Fourier_transform_G_tau()
 	vec cfs_Gtau(4*Ntau);
 
 
-	if (Ntau<=Ntau_max_LC)
+	if (Ntau<=Ntau_max_LC || !dG_dtau_computed)
 	{
 		vec cfs_LC(4);
 		vec LC(2);
@@ -10004,7 +10107,7 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 		NM=2;
 	}
 	
-	compute_dG_dtau();
+	dG_dtau_computed=compute_dG_dtau();
 	
 	return true;
 }

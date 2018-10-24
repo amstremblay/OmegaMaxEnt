@@ -240,7 +240,7 @@ static map<Other_params_fl_name, string> Other_params_fl( {
 static map<Other_params_fl_name, double> Other_params_fl_default_values( {
 	{F_SW_STD_OMEGA,3},
 	{F_W_RANGE,20.0},
-	{RMIN_SW_DW,25},
+	{RMIN_SW_DW,50},
     {TOL_TEM,1.0e-8},
 	{TOL_GINF,1.0e-3},
     {TOL_NORM,0.1},
@@ -262,7 +262,7 @@ static map<Other_params_fl_name, double> Other_params_fl_default_values( {
     {R_WIDTH_ASMIN,0.05},
     {F_SMIN,1.0},
     {DIFF_CHI2_MAX,0.2},
-    {TOL_INT_DA,1.0e-10},
+    {TOL_INT_DA,1.0e-12},
     {R_C2_H,1.0e12},
     {POW_ALPHA_STEP_INIT,0.2},
     {POW_ALPHA_STEP_MIN,0.001},
@@ -282,7 +282,7 @@ static map<Other_params_fl_name, double> Other_params_fl_default_values( {
 	{R_WMAX_WR_MIN,3},
 	{WGT_MIN_SM,0.2},
 	{R_SW_G_RE_W_RANGE,10},
-	{R_DW_MIN_DW_DENSE,1},
+	{R_DW_MIN_DW_DENSE,5},
 	{R_WKK_SW,0.01}} );
 
 static const char *OmegaMaxEnt_notice=R"(
@@ -524,18 +524,18 @@ extern "C++"
 		string input_dir_in, input_dir, data_file_name_in, data_file_name, boson_in, tau_GF_in, tem_in, M0_in, M1_in, errM1_in, M2_in, errM2_in, M3_in, errM3_in, omega_n_trunc_in, G_omega_inf_in, col_Gr_in, col_Gi_in, error_file_in, error_file, col_errGr_in, col_errGi_in, covar_re_re_file_in, covar_re_re_file, covar_im_im_file_in, covar_im_im_file, covar_re_im_file_in, covar_re_im_file, col_Gtau_in, col_errGtau_in, covar_tau_file_in, covar_tau_file, cutoff_wn_in, SW_in, SC_in, w_origin_in, step_omega_in, grid_omega_file_in, grid_omega_file, use_grid_params_in, omega_grid_params_in, eval_moments_in, maxM_in, def_model_file_in, def_model_file, init_spectr_func_file_in, init_spectr_func_file, default_model_center_in, default_model_width_in, default_model_shape_in, non_uniform_grid_in, Ginf_finite_in, noise_params_in, output_dir_in, output_dir, output_dir_fin, output_name_suffix, output_name_format, w_sample_in, Nalpha_in, alpha_min_in, alpha_init_in, alpha_opt_max_in, alpha_opt_min_in, alpha_save_max_in, alpha_save_min_in, A_ref_file, A_ref_file_in, def_model_output_file_name, A_opt_name_format, A_opt_err_name_format, output_G_format, output_error_format, auto_corr_error_G_format, output_G_opt_format, error_G_opt_format, auto_corr_error_G_opt_format, output_moments_format, output_moments_opt_format, chi2_vs_alpha_format, Asamp_vs_alpha_format, samp_freq_format, A_opt_name, A_opt_name_rm, A_opt_err_name_rm, A_alpha_min_name, output_G_opt_rm, error_G_opt_rm, auto_corr_error_G_opt_rm, output_moments_opt_rm, G_re_omega_name, Pade_G_re_omega_name, G_re_t_name, output_grid_params_in, compute_Pade_in, N_Pade_in, eta_Pade_in;
 		//interp_type, interp_type_in
 		
-        bool use_grid_params, use_const_dw, use_exp_step, displ_prep_figs, displ_adv_prep_figs, print_other_params, boson, tau_GF, initialize, initialize_maxent, execute_maxent, save_spec_func, print_alpha, displ_optim_figs, cov_diag, moments_provided, eval_moments, covm_diag, wc_exists, w_exists, SW_set, SC_set, peak_exists, read_params, read_other_params, params_loaded, other_params_loaded, M1_set, M2_set, main_spectral_region_set, A_ref_change, show_optimal_alpha_figs, show_lowest_alpha_figs, show_alpha_curves, preproc_complete, Du_constant, non_uniform_grid, w_origin_set, interactive_mode, Ginf_finite, alpha_min_too_high, error_provided, compute_Pade;
+        bool use_grid_params, use_const_dw, use_exp_step, displ_prep_figs, displ_adv_prep_figs, print_other_params, boson, tau_GF, initialize, initialize_maxent, execute_maxent, save_spec_func, print_alpha, displ_optim_figs, cov_diag, moments_provided, eval_moments, covm_diag, wc_exists, w_exists, SW_set, SC_set, peak_exists, read_params, read_other_params, params_loaded, other_params_loaded, M1_set, M2_set, main_spectral_region_set, A_ref_change, show_optimal_alpha_figs, show_lowest_alpha_figs, show_alpha_curves, preproc_complete, Du_constant, non_uniform_grid, w_origin_set, interactive_mode, Ginf_finite, alpha_min_too_high, error_provided, compute_Pade, dG_dtau_computed;
 		
         double tem, cutoff_wn, SW, SC, w_origin, step_omega, signG, alpha0, alpha0_default, alpha, pow_alpha_step, alpha_min_default, alpha_min, alpha_opt_max, alpha_opt_min, M0, errM0, M1, errM1, M2, errM2, M3, errM3, std_omega, omega_n_trunc, wl, wr, w0l, w0r, dwl, dwr, dw_peak, M0t, M1n, default_model_width, default_model_center, default_model_shape, dlchi2_lalpha_min, dlchi2_lalpha_max, alpha_save_max, alpha_save_min, lchi2_lalpha_lgth, G_omega_inf, eta_Pade;
         
-        uint col_Gr, col_errGr, col_errGi, col_Gtau, col_errGtau, Nalpha, Nn, Nn_all, indG_0, indG_f, NM, NMinput, NM_odd, NM_even, Nw, NwA, Nwc, Nw_dense, jfit, ind_cutoff_wn, NGM, Nalpha_max, NAprec, ind0, Ntau, Nn_as_min;
+        uint col_Gr, col_errGr, col_errGi, col_Gtau, col_errGtau, Nalpha, Nn, Nn_all, indG_0, indG_f, NM, NMinput, NM_odd, NM_even, Nw, NwA, Nwc, Nw_dense, Nw_out, jfit, ind_cutoff_wn, NGM, Nalpha_max, NAprec, ind0, Ntau, Nn_as_min;
 		uvec n, n_all, Nw_lims;
 		int maxM, maxM_default, col_Gi, ind_alpha_vec, NnC, ind_curv, ind_curv0, ind_noise, N_params_noise, N_Pade;
 		
 		mat K, KGM, KGMw, invDw, KG_V, KM, KM_V, COV, CRR, CII, CRI, COVM, COVMfit, Ctau, Ctau_all, green_data, error_data, grid_w_data, def_data, Aw_data, Aref_data, Aprec, Aw_samp;
 		rowvec omega_grid_params, w_sample, noise_params, output_grid_params;
 		uvec w_sample_ind;
-		vec w_dense, Gr_Re_w, Gi_Re_w, Gr_Re_w_KK, Gi_Re_w_KK, Gi_Re_w_FFT, Gr, Gi, Gchi2, G_V, GM, wn, wn_all, errGr, errGi, errG, errGtau, M, M_V, errM, M_even, M_odd, Mfit, ws, A, A0, Amin, wc, w, wA, dwS, default_model, w_ref, A_ref, chi2_vec, alpha_vec, S_vec, M_ord, Gtau, tau, dlchi2_lalpha_1, curv_lchi2_lalpha_1, grid_dens, P_alpha_G, log_P_alpha_G, dG_tau, d2G_tau, d3G_tau, t_re;
+		vec w_out, w_dense, Gr_Re_w, Gi_Re_w, Gr_Re_w_KK, Gi_Re_w_KK, Gi_Re_w_FFT, Gr, Gi, Gchi2, G_V, GM, wn, wn_all, errGr, errGi, errG, errGtau, M, M_V, errM, M_even, M_odd, Mfit, ws, A, A0, Amin, wc, w, wA, dwS, default_model, w_ref, A_ref, chi2_vec, alpha_vec, S_vec, M_ord, Gtau, tau, dlchi2_lalpha_1, curv_lchi2_lalpha_1, grid_dens, P_alpha_G, log_P_alpha_G, dG_tau, d2G_tau, d3G_tau, t_re, dG_w;
 		cx_vec G, G_all, G_t_re, GR_Pade;
 		cx_mat Kcx;
 		uword ind_P_alpha_G_max;
