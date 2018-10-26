@@ -201,7 +201,6 @@ void OmegaMaxEnt_data::loop_run()
 		
 		if (Ginf_finite && !eval_moments_in.size() && !G_omega_inf_in.size()) eval_moments=true;
 
-//		if (!interactive_mode)
 		if (!graph_2D::display_figures && !graph_2D::print_to_file)
 		{
 			show_optimal_alpha_figs=false;
@@ -3286,8 +3285,6 @@ void OmegaMaxEnt_data::compute_Re_chi_omega(vec Ap)
 	
 	Fourier_transform_spectrum(w_dense, A_dense, t, At);
 	
-//	cout<<"imag(dA(t)/dt|_t=0): "<<imag(At(1)-At(0))/t(1)<<endl;
-	
 	t_re=t;
 	G_t_re=dcomplex(0,1.0)*At;
 	
@@ -3308,7 +3305,6 @@ void OmegaMaxEnt_data::compute_Re_chi_omega(vec Ap)
 	dG_w=-dG_w;
 	Gi_Re_w_FFT=-imag(G_Re_w);
 	
-/*
 	double DwKK=R_wKK_SW*SW;
 	
 	int jKK_r;
@@ -3318,8 +3314,46 @@ void OmegaMaxEnt_data::compute_Re_chi_omega(vec Ap)
 	
 	vec wKK=w_dense.rows(j0,jKK_r);
 	
-	int NwKK=jKK_r+1;
-*/
+	int NwKK=jKK_r-j0+1;
+
+	void *par[5];
+	par[0]=&w;
+	par[1]=&Nw_lims;
+	par[2]=&ws;
+	par[3]=&coeffs;
+	
+	fctPtr1 Ptr=static_cast<fctPtr1> (&OmegaMaxEnt_data::KK_integ_chi);
+	
+	double tol0=1e-4;
+	double tol_r=1e-8;
+	double tol_min=1e-10;
+	double Rwdw=1e-10;
+	vec tol;
+	
+	int Nint=4;
+	vec lims(Nint+1);
+	
+	lims(0)=-w(Nw-1);
+	lims(1)=-w(Nw_lims(0));
+	lims(2)=0;
+	lims(3)=w(Nw_lims(0));
+	lims(4)=w(Nw-1);
+	
+	vec Gr_Re_w_tmp;
+	
+	Gr_Re_w_tmp.zeros(NwKK,1);
+	tol=tol0*ones(NwKK,1);
+	KK_integrate(wKK, Ptr, par, Rwdw, Gr_Re_w_tmp, tol, lims);
+	tol=tol_r*abs(Gr_Re_w_tmp);
+	for (j=0; j<NwKK; j++) if (tol(j)<tol_min) tol(j)=tol_min;
+	KK_integrate(wKK, Ptr, par, Rwdw, Gr_Re_w_tmp, tol, lims);
+	Gr_Re_w_tmp=-Gr_Re_w_tmp/PI;
+	
+	Gr_Re_w_KK.zeros(2*NwKK-1);
+	Gr_Re_w_KK.rows(NwKK-1,2*NwKK-2)=Gr_Re_w_tmp;
+	Gr_Re_w_KK.rows(0,NwKK-2)=flipud(Gr_Re_w_tmp.rows(1,NwKK-1));
+	
+	Gr_Re_w.rows(j0-NwKK+1,j0+NwKK-1)=Gr_Re_w_KK;
 	
 	if (w_out(0)!=w_dense(0) || w_out(Nw_out-1)!=w_dense(Nw_dense-1) || Nw_out==Nw_dense)
 	{
@@ -3351,6 +3385,7 @@ void OmegaMaxEnt_data::compute_Re_chi_omega(vec Ap)
 	
 	if (compute_G_Re_w_KK)
 	{
+	/*
 		void *par[5];
 		par[0]=&w;
 		par[1]=&Nw_lims;
@@ -3375,7 +3410,7 @@ void OmegaMaxEnt_data::compute_Re_chi_omega(vec Ap)
 		lims(4)=w(Nw-1);
 		
 		vec Gr_Re_w_tmp;
-		
+	*/
 		Gr_Re_w_tmp.zeros(Nw_dense-j0,1);
 		tol=tol0*ones(Nw_dense-j0,1);
 		KK_integrate(w_dense.rows(j0,Nw_dense-1), Ptr, par, Rwdw, Gr_Re_w_tmp, tol, lims);
@@ -3557,6 +3592,7 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 	
 	if (compute_G_Re_w_KK)
 	{
+	/*
 		double tol0=1e-4;
 		double tol_r=1e-8;
 		double tol_min=1e-10;
@@ -3584,7 +3620,7 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 		
 		int Nint=4;
 		vec lims(Nint+1);
-		
+	
 		lims(0)=w(0);
 		lims(4)=w(Nw-1);
 		if (w(Nw_lims(0))<0 && w(Nw_lims(1))>0)
@@ -3605,7 +3641,7 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 			lims(2)=w(Nw_lims(1));
 			lims(3)=0;
 		}
-		
+	*/
 		Gr_Re_w_KK.zeros(Nw_dense,1);
 		tol=tol0*ones(Nw_dense,1);
 		KK_integrate(w_dense, Ptr, par, Rwdw, Gr_Re_w_KK, tol, lims);
@@ -5748,34 +5784,6 @@ bool OmegaMaxEnt_data::set_wc_chi()
 	
 	double dw_min;
 	
-/*
-	if (!step_omega_in.size() && non_uniform_grid && peak_exists)
-	{
-		double dw_default=0;
-		
-		dw_min=2*dw_peak/R_peak_width_dw;
-		
-		if (SW_set)
-		{
-			dw_default=SW/(f_SW_std_omega*Rmin_SW_dw);
-		}
-		else if (std_omega)
-		{
-			dw_default=std_omega/Rmin_SW_dw;
-		}
-		else if (main_spectral_region_set)
-		{
-			dw_default=2*wr/(f_SW_std_omega*Rmin_SW_dw);
-		}
-		else if (jfit)
-		{
-			dw_default=2*wn(jfit)/(R_wncutoff_wr*f_SW_std_omega*Rmin_SW_dw);
-		}
-		
-		if (dw_min<dw_default) use_nu_grid=true;
-	}
-*/
-	
 	if (non_uniform_grid && step_omega_in.size())
 	{
 		dw_min=step_omega;
@@ -7032,14 +7040,28 @@ bool OmegaMaxEnt_data::compute_moments_tau_bosons()
 	
 	int Nfitmax=ceil(FNfitTauW*Ntau*tem/(abs(M0_NP_tmp/M1n)+Wtmp));
 	if (Nfitmax>Ntau/2) Nfitmax=Ntau/2;
-	
 	if (Nfitmax>Nfitmax_max) Nfitmax=Nfitmax_max;
 	
-//	cout<<"Nfitmax: "<<Nfitmax<<endl;
+	mat X;
+	int p;
+	
+	Nfit=Nfitmax;
+	np=Nfit-1;
+	X.zeros(Nfit,np+1);
+	for (p=0; p<=np; p++)
+		X.col(p)=pow(tau.rows(0,Nfit-1),p);
+	
+	mat U, V;
+	vec sK;
+	svd(U,sK,V,X,"std");
+	
+	p=0;
+	while (p<=np && sK(p)/sK(0)>R_sv_min) p++;
+	Nfitmax=p;
 	
 	double M0_N, M1_N, M2_N, M3_N;
 	
-	mat X, CG, invCG, AM;
+	mat CG, invCG, AM;
 	vec Gchi2tmp, BM, Mtmp;
 	npmin=3;
 	int Nfitmin=npmin+1;
@@ -7047,7 +7069,7 @@ bool OmegaMaxEnt_data::compute_moments_tau_bosons()
 	
 	if (NNfit<5)
 	{
-		cout<<"compute_moments_tau_bosons(): imaginary time step is too large to extract the moments. Provide the first and second moments or use a smaller step.\n";
+		cout<<"compute_moments_tau_bosons(): unable to compute the moments from G(tau). The imaginary time step can be either too small or too large. You can either change the step, provide the first moment, or increase parameter R_sv_min in file \"OmegaMaxEnt_other_params.dat\".\n";
 		return false;
 	}
 	
@@ -7055,7 +7077,6 @@ bool OmegaMaxEnt_data::compute_moments_tau_bosons()
 	mat M1b=zeros<mat>(NNfit,NNfit);
 	mat M2b=zeros<mat>(NNfit,NNfit);
 	mat M3b=zeros<mat>(NNfit,NNfit);
-	int p;
 
 	//		char UPLO='U';
 	//		int NA, NRHS=1, INFO;
@@ -7071,7 +7092,6 @@ bool OmegaMaxEnt_data::compute_moments_tau_bosons()
 			
 			Gchi2tmp=Gtau.rows(0,Nfit-1)+flipud(Gtau.rows(Ntau-Nfit+1,Ntau));
 			CG=Ctau_all.submat(0,0,Nfit-1,Nfit-1)+fliplr(Ctau_all.submat(0,Ntau-Nfit+1,Nfit-1,Ntau))+flipud(Ctau_all.submat(Ntau-Nfit+1,0,Ntau,Nfit-1))+flipud(fliplr(Ctau_all.submat(Ntau-Nfit+1,Ntau-Nfit+1,Ntau,Ntau)));
-//			CG(0,0)=CG(1,1);
 			invCG=inv(CG);
 //			invCG=inv_sympd(CG);
 			AM=(X.t())*invCG*X;
@@ -9473,7 +9493,7 @@ bool OmegaMaxEnt_data::compute_dG_dtau()
 	int sgn=1;
 	if (boson) sgn=-1;
 	
-	int Nfitmax_max=20;
+	int Nfitmax_max=50;
 	
 	int Nv=1;
 	int NvN=1;
@@ -9486,10 +9506,27 @@ bool OmegaMaxEnt_data::compute_dG_dtau()
 	double Wtmp=std_omega;
 	
 	int Nfitmax=ceil(FNfitTauW*Ntau*tem/(abs(M1/M0)+Wtmp));
-	if (Nfitmax>Ntau) Nfitmax=Ntau;
+	if (Nfitmax>Ntau) Nfitmax=Ntau/2;
 	if (Nfitmax>Nfitmax_max) Nfitmax=Nfitmax_max;
 	
-	mat X, CG, invCG, AM;
+	mat X;
+	int p;
+	
+	Nfit=Nfitmax;
+	np=Nfit-1;
+	X.zeros(Nfit,np+1);
+	for (p=0; p<=np; p++)
+		X.col(p)=pow(tau.rows(0,Nfit-1),p);
+	
+	mat U, V;
+	vec sK;
+	svd(U,sK,V,X,"std");
+	
+	p=0;
+	while (p<=np && sK(p)/sK(0)>R_sv_min) p++;
+	Nfitmax=p;
+	
+	mat CG, invCG, AM;
 	vec Gchi2tmp, BM, Mtmp;
 	npmin=3;
 	int Nfitmin=npmin+1;
@@ -9497,7 +9534,7 @@ bool OmegaMaxEnt_data::compute_dG_dtau()
 	
 	if (NNfit<5)
 	{
-		cout<<"compute_dG_dtau(): imaginary time step is too large to determine dG/dtau.\n";
+		cout<<"compute_dG_dtau(): unable to determine dG/dtau. The imaginary time step can be either too small or too large. You can either change the step or increase parameter R_sv_min in file \"OmegaMaxEnt_other_params.dat\".\n";
 		return false;
 	}
 	
@@ -9509,7 +9546,7 @@ bool OmegaMaxEnt_data::compute_dG_dtau()
 	mat dGb=zeros<mat>(NNfit,NNfit);
 	mat d2Gb=zeros<mat>(NNfit,NNfit);
 	mat d3Gb=zeros<mat>(NNfit,NNfit);
-	int p;
+	
 	for (Nfit=Nfitmin; Nfit<=Nfitmax; Nfit++)
 	{
 		for (np=npmin; np<Nfit; np++)
@@ -9694,8 +9731,7 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	//cout<<"COMPUTING MOMENTS with compute_moments_tau_fermions()\n";
 	cout<<"COMPUTING MOMENTS\n";
 	
-//	int pow_max_tau=20;
-	int Nfitmax_max=20;
+	int Nfitmax_max=50;
 	
 	int Nv=1;
 	int NvN=1;
@@ -9764,14 +9800,27 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 		Wtmp=abs(M1_NP_tmp/M0_NP_tmp);
 	
 	int Nfitmax=ceil(FNfitTauW*Ntau*tem/(abs(M1_NP_tmp/M0_NP_tmp)+Wtmp));
-	if (Nfitmax>Ntau) Nfitmax=Ntau;
+	if (Nfitmax>Ntau) Nfitmax=Ntau/2;
 	if (Nfitmax>Nfitmax_max) Nfitmax=Nfitmax_max;
-
-//	cout<<"1/Wtmp: "<<1/Wtmp<<endl;
-//	cout<<"Dtau: "<<tau(1)<<endl;
-//	cout<<"Nfitmax: "<<Nfitmax<<endl;
 	
-	mat X, CG, invCG, AM;
+	mat X;
+	int p, pmax;
+	
+	Nfit=Nfitmax;
+	np=Nfit-1;
+	X.zeros(Nfit,np+1);
+	for (p=0; p<=np; p++)
+		X.col(p)=pow(tau.rows(0,Nfit-1),p);
+	
+	mat U, V;
+	vec sK;
+	svd(U,sK,V,X,"std");
+	
+	p=0;
+	while (p<=np && sK(p)/sK(0)>R_sv_min) p++;
+	Nfitmax=p;
+	
+	mat CG, invCG, AM;
 	vec Gchi2tmp, BM, Mtmp;
 	npmin=3;
 	int Nfitmin=npmin+1;
@@ -9780,7 +9829,7 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	
 	if (NNfit<5)
 	{
-		cout<<"compute_moments_tau_fermions(): imaginary time step is too large to extract the moments. Provide the first and second moments or use a smaller step.\n";
+		cout<<"compute_moments_tau_fermions(): unable to compute the moments from G(tau). The imaginary time step can be either too small or too large. You can either change the step, provide the first moment, or increase parameter R_sv_min in file \"OmegaMaxEnt_other_params.dat\".\n";
 		return false;
 	}
 	
@@ -9788,11 +9837,6 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	mat M1b=zeros<mat>(NNfit,NNfit);
 	mat M2b=zeros<mat>(NNfit,NNfit);
 	mat M3b=zeros<mat>(NNfit,NNfit);
-	int p, pmax;
-	
-//	cout<<"Nfitmin: "<<Nfitmin<<endl;
-//	cout<<"Nfitmax: "<<Nfitmax<<endl;
-//	cout<<"NNfit: "<<NNfit<<endl;
 	
 	for (Nfit=Nfitmin; Nfit<=Nfitmax; Nfit++)
 	{
@@ -9806,7 +9850,6 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 			
 			Gchi2tmp=Gtau.rows(0,Nfit-1)+flipud(Gtau.rows(Ntau-Nfit+1,Ntau));
 			CG=Ctau_all.submat(0,0,Nfit-1,Nfit-1)+fliplr(Ctau_all.submat(0,Ntau-Nfit+1,Nfit-1,Ntau))+flipud(Ctau_all.submat(Ntau-Nfit+1,0,Ntau,Nfit-1))+flipud(fliplr(Ctau_all.submat(Ntau-Nfit+1,Ntau-Nfit+1,Ntau,Ntau)));
-		//	CG(0,0)=CG(1,1);
 			invCG=inv(CG);
 			//	invCG=inv_sympd(CG);
 			AM=(X.t())*invCG*X;
@@ -17789,33 +17832,7 @@ bool OmegaMaxEnt_data::set_wc()
 	
 	double dw_min;
 
-/*
-	if (!step_omega_in.size() && non_uniform_grid && peak_exists)
-	{
-		double dw_default=0;
-		
-		dw_min=2*dw_peak/R_peak_width_dw;
-		
-		if (SW_set)
-		{
-			dw_default=SW/(f_SW_std_omega*Rmin_SW_dw);
-		}
-		else if (std_omega)
-		{
-			dw_default=std_omega/Rmin_SW_dw;
-		}
-		else if (main_spectral_region_set)
-		{
-			dw_default=(wr-wl)/(f_SW_std_omega*Rmin_SW_dw);
-		}
-		else if (jfit)
-		{
-			dw_default=2*wn(jfit)/(R_wncutoff_wr*f_SW_std_omega*Rmin_SW_dw);
-		}
-		
-		if (dw_min<dw_default) use_nu_grid=true;
-	}
-*/
+
 	if (non_uniform_grid && step_omega_in.size())
 	{
 		dw_min=step_omega;
@@ -17829,7 +17846,6 @@ bool OmegaMaxEnt_data::set_wc()
 		use_nu_grid=true;
 	}
 	
-//	if (step_omega_in.size() || !non_uniform_grid || !peak_exists || !use_nu_grid)
 	if (!use_nu_grid)
 	{
 		cout<<"using uniform grid in main spectral range\n";
@@ -17854,6 +17870,14 @@ bool OmegaMaxEnt_data::set_wc()
 		{
 			SW=wr-wl;
 			SW_set=true;
+		}
+		else if (SW_set)
+		{
+			SC=0;
+			SC_set=true;
+			wr=SW/2;
+			wl=-SW/2;
+			main_spectral_region_set=true;
 		}
 		else
 		{
@@ -22738,6 +22762,13 @@ bool OmegaMaxEnt_data::load_other_params()
 				R_wKK_SW=stod(str);
 				if (R_wKK_SW!=Other_params_fl_default_values[R_WKK_SW] || print_other_params)
 					cout<<Other_params_fl[R_WKK_SW]<<" "<<R_wKK_SW<<endl;
+			}
+			else if (str.compare(0,Other_params_fl[R_SV_MIN].size(),Other_params_fl[R_SV_MIN])==0)
+			{
+				str=str.substr(Other_params_fl[R_SV_MIN].size());
+				R_sv_min=stod(str);
+				if (R_sv_min!=Other_params_fl_default_values[R_SV_MIN] || print_other_params)
+					cout<<Other_params_fl[R_SV_MIN]<<" "<<R_sv_min<<endl;
 			}
 			
             getline(file,str);

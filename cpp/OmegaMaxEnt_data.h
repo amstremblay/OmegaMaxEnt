@@ -187,7 +187,7 @@ static map<Other_params_int_name, int> Other_params_int_default_values( {
     {NW_SAMP,11},
 	{NSMOOTH_ERRG,0} } );
 
-enum Other_params_fl_name {F_SW_STD_OMEGA, F_W_RANGE, RMIN_SW_DW, TOL_TEM, TOL_GINF, TOL_NORM, TOL_M1, TOL_M2, TOL_M3, DEFAULT_ERROR_G, ERR_NORM, DEFAULT_ERROR_M, TOL_MEAN_C1,TOL_STD_C1, TOL_RDW, RMIN_DW_DW, RDW_MAX, RW_GRID, RWD_GRID,  MIN_DEF_M, F_ALPHA_INIT, R_WIDTH_ASMIN, F_SMIN, DIFF_CHI2_MAX, TOL_INT_DA, R_C2_H, POW_ALPHA_STEP_INIT, POW_ALPHA_STEP_MIN, CHI2_ALPHA_SMOOTH_RANGE_2, F_SCALE_LALPHA_LCHI2, FN_FIT_TAU_W, STD_NORM_PEAK_MAX, VAR_M2_PEAK_MAX, PEAK_WEIGHT_MIN, RMAX_DLCHI2_LALPHA, F_ALPHA_MIN, SAVE_ALPHA_RANGE, R_PEAK_WIDTH_DW, R_WNCUTOFF_WR, R_DW_DW, R_SW_WR, R_WMAX_WR_MIN,WGT_MIN_SM,R_SW_G_RE_W_RANGE,R_DW_MIN_DW_DENSE, R_WKK_SW};
+enum Other_params_fl_name {F_SW_STD_OMEGA, F_W_RANGE, RMIN_SW_DW, TOL_TEM, TOL_GINF, TOL_NORM, TOL_M1, TOL_M2, TOL_M3, DEFAULT_ERROR_G, ERR_NORM, DEFAULT_ERROR_M, TOL_MEAN_C1,TOL_STD_C1, TOL_RDW, RMIN_DW_DW, RDW_MAX, RW_GRID, RWD_GRID,  MIN_DEF_M, F_ALPHA_INIT, R_WIDTH_ASMIN, F_SMIN, DIFF_CHI2_MAX, TOL_INT_DA, R_C2_H, POW_ALPHA_STEP_INIT, POW_ALPHA_STEP_MIN, CHI2_ALPHA_SMOOTH_RANGE_2, F_SCALE_LALPHA_LCHI2, FN_FIT_TAU_W, STD_NORM_PEAK_MAX, VAR_M2_PEAK_MAX, PEAK_WEIGHT_MIN, RMAX_DLCHI2_LALPHA, F_ALPHA_MIN, SAVE_ALPHA_RANGE, R_PEAK_WIDTH_DW, R_WNCUTOFF_WR, R_DW_DW, R_SW_WR, R_WMAX_WR_MIN,WGT_MIN_SM,R_SW_G_RE_W_RANGE,R_DW_MIN_DW_DENSE, R_WKK_SW, R_SV_MIN};
 
 static map<Other_params_fl_name, string> Other_params_fl( {
 	{F_SW_STD_OMEGA, "f_SW_std_omega, ratio of main spectral range and standard deviation of spectrum:"},
@@ -235,7 +235,8 @@ static map<Other_params_fl_name, string> Other_params_fl( {
 	{WGT_MIN_SM, "wgt_min_sm, smallest relative weight in the smoothing of the added noise error:"},
 	{R_SW_G_RE_W_RANGE, "R_SW_G_Re_w_range, ratio of total frequency range and main spectral region for the real part of G:"},
 	{R_DW_MIN_DW_DENSE,"R_dw_min_dw_dense, default ratio of the minimal step in the computation grid and the step in the output grid:"},
-	{R_WKK_SW,"R_wKK_SW, frequency region around zero where Re[G] is computed with Kramers-Kronig, divided by the spectral function width:"}} );
+	{R_WKK_SW,"R_wKK_SW, frequency region around zero where Re[G] is computed with Kramers-Kronig, divided by the spectral function width:"},
+	{R_SV_MIN,"minimum ratio of matrix singular values in the moments computation in tau:"}} );
 
 static map<Other_params_fl_name, double> Other_params_fl_default_values( {
 	{F_SW_STD_OMEGA,3},
@@ -283,7 +284,8 @@ static map<Other_params_fl_name, double> Other_params_fl_default_values( {
 	{WGT_MIN_SM,0.2},
 	{R_SW_G_RE_W_RANGE,10},
 	{R_DW_MIN_DW_DENSE,5},
-	{R_WKK_SW,0.01}} );
+	{R_WKK_SW,0.01},
+	{R_SV_MIN,1e-12}} );
 
 static const char *OmegaMaxEnt_notice=R"(
 OmegaMaxEnt Copyright (C) 2015 Dominic Bergeron (dominic.bergeron@usherbrooke.ca)
@@ -518,7 +520,7 @@ extern "C++"
         //! internal computation parameters
 		int Nn_min, Nn_max, Nw_min, Nw_max, Nn_fit_max, Nn_fit_fin, Niter_dA_max, Nalpha_max_figs, Nwsamp, Nsmooth_errG;
 		
-        double f_w_range, f_SW_std_omega, f_width_grid_dens, tol_tem, tol_G_inf, tol_norm, tol_R_G0_Gbeta, tol_M1, tol_M2, tol_M3, default_error_G, err_norm, default_error_M, tol_mean_C1, tol_std_C1, tol_rdw, Rmin_Dw_dw, Rdw_max, RW_grid, RWD_grid, minDefM, f_alpha_init, R_width_ASmin, f_Smin, diff_chi2_max, tol_int_dA, rc2H, pow_alpha_step_init, pow_alpha_step_min, chi2_alpha_smooth_range, f_scale_lalpha_lchi2, FNfitTauW, std_norm_peak_max, varM2_peak_max, peak_weight_min, RMAX_dlchi2_lalpha, f_alpha_min, save_alpha_range,  Rmin_SW_dw, R_peak_width_dw, R_wncutoff_wr, R_Dw_dw, R_SW_wr, R_wmax_wr_min, wgt_min_sm, R_SW_G_Re_w_range, R_dw_min_dw_dense, R_wKK_SW;
+        double f_w_range, f_SW_std_omega, f_width_grid_dens, tol_tem, tol_G_inf, tol_norm, tol_R_G0_Gbeta, tol_M1, tol_M2, tol_M3, default_error_G, err_norm, default_error_M, tol_mean_C1, tol_std_C1, tol_rdw, Rmin_Dw_dw, Rdw_max, RW_grid, RWD_grid, minDefM, f_alpha_init, R_width_ASmin, f_Smin, diff_chi2_max, tol_int_dA, rc2H, pow_alpha_step_init, pow_alpha_step_min, chi2_alpha_smooth_range, f_scale_lalpha_lchi2, FNfitTauW, std_norm_peak_max, varM2_peak_max, peak_weight_min, RMAX_dlchi2_lalpha, f_alpha_min, save_alpha_range,  Rmin_SW_dw, R_peak_width_dw, R_wncutoff_wr, R_Dw_dw, R_SW_wr, R_wmax_wr_min, wgt_min_sm, R_SW_G_Re_w_range, R_dw_min_dw_dense, R_wKK_SW, R_sv_min;
 		
 		//! input parameters
 		string input_dir_in, input_dir, data_file_name_in, data_file_name, boson_in, tau_GF_in, tem_in, M0_in, M1_in, errM1_in, M2_in, errM2_in, M3_in, errM3_in, omega_n_trunc_in, G_omega_inf_in, col_Gr_in, col_Gi_in, error_file_in, error_file, col_errGr_in, col_errGi_in, covar_re_re_file_in, covar_re_re_file, covar_im_im_file_in, covar_im_im_file, covar_re_im_file_in, covar_re_im_file, col_Gtau_in, col_errGtau_in, covar_tau_file_in, covar_tau_file, cutoff_wn_in, SW_in, SC_in, w_origin_in, step_omega_in, grid_omega_file_in, grid_omega_file, use_grid_params_in, omega_grid_params_in, eval_moments_in, maxM_in, def_model_file_in, def_model_file, init_spectr_func_file_in, init_spectr_func_file, default_model_center_in, default_model_width_in, default_model_shape_in, non_uniform_grid_in, Ginf_finite_in, noise_params_in, output_dir_in, output_dir, output_dir_fin, output_name_suffix, output_name_format, w_sample_in, Nalpha_in, alpha_min_in, alpha_init_in, alpha_opt_max_in, alpha_opt_min_in, alpha_save_max_in, alpha_save_min_in, A_ref_file, A_ref_file_in, def_model_output_file_name, A_opt_name_format, A_opt_err_name_format, output_G_format, output_error_format, auto_corr_error_G_format, output_G_opt_format, error_G_opt_format, auto_corr_error_G_opt_format, output_moments_format, output_moments_opt_format, chi2_vs_alpha_format, Asamp_vs_alpha_format, samp_freq_format, A_opt_name, A_opt_name_rm, A_opt_err_name_rm, A_alpha_min_name, output_G_opt_rm, error_G_opt_rm, auto_corr_error_G_opt_rm, output_moments_opt_rm, G_re_omega_name, Pade_G_re_omega_name, G_re_t_name, output_grid_params_in, compute_Pade_in, N_Pade_in, eta_Pade_in;
