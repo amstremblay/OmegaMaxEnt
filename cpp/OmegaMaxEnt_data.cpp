@@ -57,6 +57,7 @@ OmegaMaxEnt_data::OmegaMaxEnt_data(int arg_N, char *args[])
     {
         for (int j=1; j<arg_N; j++)
         {
+		//	cout<<"option: "<<args[j]<<endl;
             if (args[j][0]=='-')
             {
                 if (!strcmp(args[j],"-nd"))
@@ -75,7 +76,7 @@ OmegaMaxEnt_data::OmegaMaxEnt_data(int arg_N, char *args[])
                 else
                     cout<<"invalid option: "<<args[j]<<'\n';
             }
-            else
+            else if (args[j][0])
             {
                 input_params_file_name.assign(args[j]);
                 cout<<"input parameters file name: "<<input_params_file_name<<'\n';
@@ -3358,13 +3359,13 @@ void OmegaMaxEnt_data::compute_Re_chi_omega(vec Ap)
 	if (w_out(0)!=w_dense(0) || w_out(Nw_out-1)!=w_dense(Nw_dense-1) || Nw_out==Nw_dense)
 	{
 		coeffs.zeros(4*(Nw_dense-1));
-		spline_coeffs_rel(w_dense.memptr(), Gi_Re_w.memptr(), Nw_dense, coeffs.memptr());
+		spline_coeffs(w_dense.memptr(), Gi_Re_w.memptr(), Nw_dense, coeffs.memptr());
 		spline_val(w_out, w_dense, coeffs, Gi_Re_w);
 		
 		coeffs.zeros();
 		coeffs(0)=dG_w(0);
 		coeffs(1)=dG_w(1);
-		spline_coeffs_rel(w_dense.memptr(), Gr_Re_w.memptr(), Nw_dense, coeffs.memptr());
+		spline_coeffs(w_dense.memptr(), Gr_Re_w.memptr(), Nw_dense, coeffs.memptr());
 		spline_val(w_out, w_dense, coeffs, Gr_Re_w);
 	}
 	
@@ -3654,7 +3655,7 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 	if (w_out(0)!=w_dense(0) || w_out(Nw_out-1)!=w_dense(Nw_dense-1) || Nw_out==Nw_dense)
 	{
 		coeffs.zeros(4*(Nw_dense-1));
-		spline_coeffs_rel(w_dense.memptr(), A_dense.memptr(), Nw_dense, coeffs.memptr());
+		spline_coeffs(w_dense.memptr(), A_dense.memptr(), Nw_dense, coeffs.memptr());
 		vec A_out;
 		spline_val(w_out, w_dense, coeffs, A_out);
 		Gi_Re_w=-A_out/2;
@@ -3663,7 +3664,7 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 		coeffs.zeros();
 		coeffs(0)=dG_w(0);
 		coeffs(1)=dG_w(1);
-		spline_coeffs_rel(w_dense.memptr(), Gr_Re_w.memptr(), Nw_dense, coeffs.memptr());
+		spline_coeffs(w_dense.memptr(), Gr_Re_w.memptr(), Nw_dense, coeffs.memptr());
 		spline_val(w_out, w_dense, coeffs, Gr_Re_w);
 	}
 	
@@ -3907,8 +3908,8 @@ void OmegaMaxEnt_data::compute_G_Re_omega_from_A_t(vec t, cx_vec At, cx_vec &G_R
 //	cout<<"coeffs_i(0): "<<coeffs_i(0)<<endl;
 //	cout<<"dAi/dt: "<<(Ai(1)-Ai(0))/t(1)<<endl;
 	
-	spline_coeffs_rel(t.memptr(), Ar.memptr(), N_interv+1, coeffs_r.memptr());
-	spline_coeffs_rel(t.memptr(), Ai.memptr(), N_interv+1, coeffs_i.memptr());
+	spline_coeffs(t.memptr(), Ar.memptr(), N_interv+1, coeffs_r.memptr());
+	spline_coeffs(t.memptr(), Ai.memptr(), N_interv+1, coeffs_i.memptr());
 	
 	uvec l=linspace<uvec>(0,N_interv-1,N_interv);
 	
@@ -3965,13 +3966,14 @@ void OmegaMaxEnt_data::compute_G_Re_omega_from_A_t(vec t, cx_vec At, cx_vec &G_R
 		c=coeffs_i(4*m+2);
 		d=coeffs_i(4*m+3);
 		inti=a*pow(dt,4)/4+b*pow(dt,3)/3+c*pow(dt,2)/2+d*dt;
-		G_Re_omega(j)+=dcomplex(inti,-intr);
+		G_Re_omega(jw0)+=dcomplex(inti,-intr);
 	}
 	
-/*
-	vec ReGRw=real(G_Re_omega);
-	vec ImGRw=imag(G_Re_omega);
+
+//	vec ReGRw=real(G_Re_omega);
+//	vec ImGRw=imag(G_Re_omega);
 	
+/*
 	const char attr1[]="'b-'";
 	const char attr2[]="'r-'";
 	const char attr3[]="'m-'";
@@ -4000,6 +4002,7 @@ void OmegaMaxEnt_data::compute_G_Re_omega_from_A_t(vec t, cx_vec At, cx_vec &G_R
 	g1.curve_plot();
 	graph_2D::show_figures();
 */
+
 /*
 	const char attr1[]="'b-'";
 	const char attr2[]="'r-'";
@@ -4007,14 +4010,17 @@ void OmegaMaxEnt_data::compute_G_Re_omega_from_A_t(vec t, cx_vec At, cx_vec &G_R
 	const char attr4[]="'c-'";
 	const char lgd1[]="$Re[G^R(\\omega)]$";
 	const char lgd2[]="$Im[G^R(\\omega)]$";
-	const char lgd3[]="$Re[G^R(\\omega)_{K}]$";
-	const char lgd4[]="$Im[G^R(\\omega)_{K}]$";
+	const char lgd3[]="$Re[G^R(\\omega)_{DFT}]$";
+	const char lgd4[]="$Im[G^R(\\omega)_{DFT}]$";
 	const char xl[]="$\\omega$";
  
 	cx_vec G_R_tmp=-I*dt*((double)N_interv)*ifft(At.rows(0,N_interv-1));
-	vec ReGRw=real(G_R_tmp);
-	vec ImGRw=imag(G_R_tmp);
+	vec ReGRw1=real(G_R_tmp);
+	vec ImGRw1=imag(G_R_tmp);
+
+//	vec w2=linspace<vec>(0,N_interv-1,N_interv)*dw+wG(0);
 	
+
 	cx_vec dAt(N_interv,fill::zeros);
 	cx_vec TF_dAt(N_interv,fill::zeros);
 //	cx_vec d2At(N_interv,fill::zeros);
@@ -4029,9 +4035,7 @@ void OmegaMaxEnt_data::compute_G_Re_omega_from_A_t(vec t, cx_vec At, cx_vec &G_R
 	dAt.set_real(coeffs_r.rows(4*l+2));
 	dAt.set_imag(coeffs_i.rows(4*l+2));
 	
-	fftw_execute(fftplan);
-
-	vec w2=linspace<vec>(0,N_interv-1,N_interv)*dw;
+ 	fftw_execute(fftplan);
 
 //	cx_vec TF_dAt=((double)N_interv)*ifft(dAt);
 
@@ -4053,28 +4057,36 @@ void OmegaMaxEnt_data::compute_G_Re_omega_from_A_t(vec t, cx_vec At, cx_vec &G_R
 	
 	vec ReGRw2(N_interv,fill::zeros);
 	vec ImGRw2(N_interv,fill::zeros);
-	
+
 	ReGRw2.rows(0,Nw_dense-jw0-1)=Gr_Re_w.rows(jw0,Nw_dense-1);
 	ImGRw2.rows(0,Nw_dense-jw0-1)=Gi_Re_w.rows(jw0,Nw_dense-1);
+
+	vec ReGRw2(Nw_dense,fill::zeros);
+	vec ImGRw2(Nw_dense,fill::zeros);
+	
+	ReGRw2.rows(jw0,Nw_dense-1)=ReGRw1.rows(0,Nw_dense-jw0-1);
+	ReGRw2.rows(0,jw0-1)=ReGRw1.rows(Nw_dense-jw0-1,Nw_dense-2);
+	ImGRw2.rows(jw0,Nw_dense-1)=ImGRw1.rows(0,Nw_dense-jw0-1);
+	ImGRw2.rows(0,jw0-1)=ImGRw1.rows(Nw_dense-jw0-1,Nw_dense-2);
 	
 	graph_2D g1;
 	
-	g1.add_data(w2.memptr(),ReGRw.memptr(),N_interv);
+	g1.add_data(wG.memptr(),ReGRw.memptr(),Nw_dense);
 	g1.add_attribute(attr1);
 	g1.add_to_legend(lgd1);
-	g1.add_data(w2.memptr(),ImGRw.memptr(),N_interv);
+	g1.add_data(wG.memptr(),ImGRw.memptr(),Nw_dense);
 	g1.add_attribute(attr2);
 	g1.add_to_legend(lgd2);
-	g1.add_data(w2.memptr(),ReGRw2.memptr(),N_interv);
+	g1.add_data(wG.memptr(),ReGRw2.memptr(),Nw_dense);
 	g1.add_attribute(attr3);
 	g1.add_to_legend(lgd3);
-	g1.add_data(w2.memptr(),ImGRw2.memptr(),N_interv);
+	g1.add_data(wG.memptr(),ImGRw2.memptr(),Nw_dense);
 	g1.add_attribute(attr4);
 	g1.add_to_legend(lgd4);
 	g1.set_axes_labels(xl,NULL);
 	g1.curve_plot();
 	graph_2D::show_figures();
- */
+*/
 }
 
 void OmegaMaxEnt_data::Fourier_transform_spectrum(vec wFt, vec AwFt, vec &t, cx_vec &At)
@@ -4090,7 +4102,7 @@ void OmegaMaxEnt_data::Fourier_transform_spectrum(vec wFt, vec AwFt, vec &t, cx_
 	AwFt(0)=0;
 	AwFt(N_interv)=0;
 	
-	spline_coeffs_rel(wFt.memptr(), AwFt.memptr(), N_interv+1, coeffs.memptr());
+	spline_coeffs(wFt.memptr(), AwFt.memptr(), N_interv+1, coeffs.memptr());
 	
 	uvec l=linspace<uvec>(0,N_interv-1,N_interv);
 	
@@ -5404,7 +5416,7 @@ bool OmegaMaxEnt_data::set_default_model_chi()
 					
 					if (dfd<=0 && C1d>0 && C2d>0)
 					{
-						spline_coeffs_rel(w_def.memptr(),def_m.memptr(),Nw_def,coeffs_spline_def.memptr());
+						spline_coeffs(w_def.memptr(),def_m.memptr(),Nw_def,coeffs_spline_def.memptr());
 						if (!default_model_val_chi(w, w_def, coeffs_spline_def, gaussians_params, default_model))
 						{
 							return false;
@@ -5830,14 +5842,12 @@ bool OmegaMaxEnt_data::set_wc_chi()
 		if (step_omega_in.size())	dw=step_omega;
 		else dw=SW/(f_SW_std_omega*Rmin_SW_dw);
 		
-		if (peak_exists)
+/*
+		if (peak_exists && dw>dw_peak)
 		{
-			if (dw>dw_peak)
-			{
-				cout<<"Warning: the step is larger than the estimated width of the peak at low energy. You can use the parameters of section FREQUENCY GRID PARAMETERS to make the grid better adapted to the spectrum.\n";
-			}
+			cout<<"Warning: the step is larger than the estimated width of the peak at low energy. You can use the parameters of section FREQUENCY GRID PARAMETERS to make the grid better adapted to the spectrum.\n";
 		}
-		
+*/
 		wl=0;
 		Nwc=round(wr/dw);
 		wr=Nwc*dw;
@@ -8773,7 +8783,7 @@ bool OmegaMaxEnt_data::Fourier_transform_G_tau()
 	{
 		cfs_Gtau(0)=dG_tau(0);
 		cfs_Gtau(1)=dG_tau(1);
-		spline_coeffs_rel(tau.memptr(), Gtau.memptr(), Ntau+1, cfs_Gtau.memptr());
+		spline_coeffs(tau.memptr(), Gtau.memptr(), Ntau+1, cfs_Gtau.memptr());
 		
 		double dtau=tau(1)-tau(0);
 		M1_FT=dG_tau(0)+dG_tau(1);
@@ -10667,7 +10677,7 @@ void OmegaMaxEnt_data::compute_Bryan_spectrum(vec &Abr)
 		coeffs(0)=0;
 		coeffs(1)=0;
 		PA_alpha=PA.col(i);
-		spline_coeffs_rel(lalpha.memptr(), PA_alpha.memptr(), ind_alpha_vec, coeffs.memptr());
+		spline_coeffs(lalpha.memptr(), PA_alpha.memptr(), ind_alpha_vec, coeffs.memptr());
 		Abr(i)=integrate_spline(lalpha, coeffs);
 	}
 	
@@ -10686,7 +10696,7 @@ void OmegaMaxEnt_data::normalize_P_alpha_G()
 	coeffs(0)=0;
 	coeffs(1)=0;
 	
-	spline_coeffs_rel(lalpha.memptr(), P_alpha_G.memptr(), ind_alpha_vec, coeffs.memptr());
+	spline_coeffs(lalpha.memptr(), P_alpha_G.memptr(), ind_alpha_vec, coeffs.memptr());
 
 	double sum=integrate_spline(lalpha, coeffs);
 	
@@ -16848,7 +16858,7 @@ bool OmegaMaxEnt_data::set_default_model()
 					
 					if (dfg>=0 && dfd<=0 && C1g>0 && C1d>0 && C2g>0 && C2d>0)
 					{
-						spline_coeffs_rel(w_def.memptr(),def_m.memptr(),Nw_def,coeffs_spline_def.memptr());
+						spline_coeffs(w_def.memptr(),def_m.memptr(),Nw_def,coeffs_spline_def.memptr());
 						if (!default_model_val_G(w, w_def, coeffs_spline_def, gaussians_params, default_model))
 						{
 							return false;
@@ -16953,13 +16963,13 @@ bool OmegaMaxEnt_data::set_default_model()
 					coeffs_spline_def(1)=dfd;
 					coeffs_spline_def(Nc)=def_m(Nw_def-1);
 					
-					//			coeffs_spline_def=spline_coeffs_rel(w_def,def_m,Nw_def,Ddefw);
+					//			coeffs_spline_def=spline_coeffs(w_def,def_m,Nw_def,Ddefw);
 					//			spline_params=Ddefw;
 					//			wl_def=wl;
 					//			wr_def=wr;
 					if (dfg>=0 && dfd<=0 && C1g>0 && C1d>0 && C2g>0 && C2d>0)
 					{
-						spline_coeffs_rel(w_def.memptr(),def_m.memptr(),Nw_def,coeffs_spline_def.memptr());
+						spline_coeffs(w_def.memptr(),def_m.memptr(),Nw_def,coeffs_spline_def.memptr());
 						if (!default_model_val_G(w, w_def, coeffs_spline_def, gaussians_params, default_model))
 						{
 							return false;
@@ -17349,11 +17359,121 @@ bool OmegaMaxEnt_data::spline_val(vec x, vec x0, vec coeffs, vec &s)
 	return true;
 }
 
+
+void OmegaMaxEnt_data::spline_matrix(double *x0, int N0, mat &MS)
+{
+	int j;
+	
+	int NS=N0-1;
+	int N=3*NS-1;
+	int KL=3;
+	int KU=2;
+	int NA=2*KL+KU+1;
+	int SA=NA*N;
+	
+	mat Ps(N,N0+2);
+	
+	double *A=new double[SA];
+	for (j=0; j<SA; j++) A[j]=0;
+	int *P=new int[N];
+	
+//	for (j=0; j<N; j++) coeffs_tmp[j]=0;
+//	double dV1=coeffs[0], dVN0=coeffs[1];
+	
+	double x;
+	
+	x=x0[1]-x0[0];
+	
+	A[KL+KU]=x*x*x;
+	A[KL+KU+1]=-6.0*x;
+	A[KL+KU+2]=-3.0*x*x;
+	
+	A[NA+KL+KU-1]=x*x;
+	A[NA+KL+KU]=-2.0;
+	A[NA+KL+KU+1]=-2.0*x;
+	
+//	coeffs_tmp[0]=(V[1]-V[0]-dV1*x);
+//	coeffs_tmp[2]=(double)dV1;
+	
+	Ps(0,0)=-x;
+	Ps(2,0)=1.0;
+	Ps(0,1)=-1.0;
+	Ps(0,2)=1.0;
+	
+	for (j=1; j<NS-1; j++)
+	{
+		x=x0[j+1]-x0[j];
+		
+		A[(3*j-1)*NA+KL+KU+1]=x*x*x;
+		A[(3*j-1)*NA+KL+KU+2]=-6.0*x;
+		A[(3*j-1)*NA+KL+KU+3]=-3.0*x*x;
+		
+		A[3*j*NA+KL]=2.0;
+		A[3*j*NA+KL+KU]=x*x;
+		A[3*j*NA+KL+KU+1]=-2.0;
+		A[3*j*NA+KL+KU+2]=-2.0*x;
+		
+		A[(3*j+1)*NA+KL]=1.0;
+		A[(3*j+1)*NA+KL+1]=x;
+		A[(3*j+1)*NA+KL+KU+1]=-1.0;
+		
+		Ps(3*j,j+1)=-1.0;
+		Ps(3*j,j+2)=1.0;
+		
+//		coeffs_tmp[3*j]=(V[j+1]-V[j]);
+	}
+	
+	j=NS-1;
+	x=x0[j+1]-x0[j];
+	
+	A[(3*j-1)*NA+KL+KU+1]=x*x*x;
+	A[(3*j-1)*NA+KL+KU+2]=3.0*x*x;
+	
+	A[3*j*NA+KL]=2.0;
+	A[3*j*NA+KL+KU]=x*x;
+	A[3*j*NA+KL+KU+1]=2.0*x;
+	
+	A[(3*j+1)*NA+KL]=1.0;
+	A[(3*j+1)*NA+KL+1]=x;
+	A[(3*j+1)*NA+KL+KU]=1.0;
+	
+	Ps(3*j,j+1)=-1.0;
+	Ps(3*j,j+2)=1.0;
+	Ps(3*j+1,j+3)=1.0;
+	
+//	coeffs_tmp[3*j]=(double)(V[j+1]-V[j]);
+//	coeffs_tmp[3*j+1]=(double)dVN0;
+
+	mat IB=eye(N,N);
+	
+	int NRHS=1;
+	int INFO=0;
+	dgbsv_(&N, &KL, &KU, &N, A, &NA, P, IB.memptr(), &N, &INFO );
+	
+//	coeffs[0]=coeffs_tmp[0];
+//	coeffs[1]=coeffs_tmp[1];
+//	coeffs[2]=dV1;
+//	coeffs[3]=V[0];
+//	for (j=1; j<NS; j++)
+//	{
+//		coeffs[4*j]=coeffs_tmp[3*j-1];
+//		coeffs[4*j+1]=coeffs_tmp[3*j];
+//		coeffs[4*j+2]=coeffs_tmp[3*j+1];
+//		coeffs[4*j+3]=V[j];
+//	}
+	
+	if (INFO)	cout<<"spline_coeffs(): INFO:  "<<INFO<<'\n';
+	
+	delete [] A;
+	delete [] P;
+}
+
+
 //!Compute the coefficients of the cubic spline for V(x) known at N0 positions x0, size of coeffs must be 4*(N0-1).
 //!upon entry, coeffs[0] and coeffs[1] must contain the derivatives of V(x) at x0[0] and x[N0-1],
 //!upon exit, the form of coeffs is {a_0, b_0, c_0, d_0, ... a_(N0-2), b_(N0-2), c_(N0-2), d_(N0-2)}.
 //!the spline values are given by S_i(x)=a_i(x-x0[i])^3+b_i(x-x0[i])^2+c_i(x-x0[i])+d_i
-void OmegaMaxEnt_data::spline_coeffs_rel(double *x0, double *V, int N0, double *coeffs)
+void OmegaMaxEnt_data::spline_coeffs(double *x0, double *V, int N0, double *coeffs)
 {
 	int j;
 	
@@ -17671,13 +17791,10 @@ bool OmegaMaxEnt_data::set_omega_grid()
 		if (step_omega_in.size())
 		{
 			dw=step_omega;
-			if (peak_exists)
-			{
-				if (dw>dw_peak)
-				{
-					cout<<"set_omega_grid() warning: step is larger than the estimated width of the peak at low energy\n";
-				}
-			}
+	//		if (peak_exists && dw>dw_peak)
+	//		{
+	//			cout<<"set_omega_grid() warning: step is larger than the estimated width of the peak at low energy\n";
+	//		}
 		}
 		else
 		{
@@ -17897,13 +18014,10 @@ bool OmegaMaxEnt_data::set_wc()
 		if (step_omega_in.size())
 		{
 			dw=step_omega;
-			if (peak_exists)
-			{
-				if (dw>dw_peak)
-				{
-					cout<<"Warning: step is larger than the estimated width of the peak at low energy. You can use the parameters of section FREQUENCY GRID PARAMETERS to make the grid better adapted to the spectrum.\n";
-				}
-			}
+		//	if (peak_exists && dw>dw_peak)
+		//	{
+		//		cout<<"Warning: step is larger than the estimated width of the peak at low energy. You can use the parameters of section FREQUENCY GRID/ PARAMETERS to make the grid better adapted to the spectrum.\n";
+		//	}
 		}
 		else
 		{

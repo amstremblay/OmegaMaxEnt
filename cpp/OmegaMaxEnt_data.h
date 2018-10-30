@@ -418,8 +418,10 @@ extern "C++"
 		double general_normal_val(double x, void *par[]);
 		
 		// compute the spline coefficients for a function V defined at points x0
-		void spline_coeffs_rel(double *x0, double *V, int N0, double *coeffs);
-		// obtain a value of the spline computed with spline_coeffs_rel()
+		void spline_coeffs(double *x0, double *V, int N0, double *coeffs);
+		//
+		void spline_matrix(double *x0, int N0, mat &MS);
+		// obtain a value of the spline computed with spline_coeffs()
 		bool spline_val(vec x, vec x0, vec coeffs, vec &s);
 		// compute the coefficients of a hybrid spline cubic in frequency at low frequency and cubic in u=1/(w-w_{0,s}) at high frequency (w_{0,s} defines the cutoff, s=left/right). Used by set_default_model() if a default model previously created by this software is reused by the user.
 		bool spline_G_part(vec x, uvec ind_xlims, vec xs, vec F, vec &coeffs);
