@@ -16,7 +16,7 @@
  
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
 #include "OmegaMaxEnt_data.h"
 #include <cstring>
@@ -1647,7 +1647,7 @@ void OmegaMaxEnt_data::loop_run()
 						}
 						
 					}
-					else if (alpha<=alpha_min)
+					else if (alpha<=alpha_min && !alpha_min_in.size())
 					{
 						cout<<"minimum value of alpha reached but optimal spectrum has not been found. Reducing alpha_min by a factor "<<f_alpha_min<<".\n";
 						alpha_min=alpha_min/f_alpha_min;
@@ -1655,7 +1655,7 @@ void OmegaMaxEnt_data::loop_run()
 						cout<<"new value of alpha_min: "<<alpha_min<<endl;
 					}
 					
-					if (alpha<=alpha_min && dlchi2_lalpha_min_av/dlchi2_lalpha_max>RMAX_dlchi2_lalpha)
+					if (alpha<=alpha_min && dlchi2_lalpha_min_av/dlchi2_lalpha_max>RMAX_dlchi2_lalpha && !alpha_min_in.size())
 					{
 						cout<<"The minimum value of alpha may not be small enough. Reducing alpha_min by a factor "<<f_alpha_min<<".\n";
 						alpha_min=alpha_min/f_alpha_min;
