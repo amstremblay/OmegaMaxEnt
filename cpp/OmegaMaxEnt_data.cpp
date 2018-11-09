@@ -456,11 +456,11 @@ void OmegaMaxEnt_data::loop_run()
 					if (samp_freq_format.back()!='_') samp_freq_format+='_';
 					samp_freq_format+="tem%1.4g.dat";
 					
-					if (initialize_maxent)
-					{
+				//	if (initialize_maxent)
+				//	{
 						if (!alpha_init_in.size()) alpha0=alpha0_default;
 						if (!alpha_min_in.size()) alpha_min=alpha_min_default;
-					}
+				//	}
 					
 					if (A_ref_file.size() && (A_ref_change || initialize_maxent))
 					{
@@ -468,12 +468,11 @@ void OmegaMaxEnt_data::loop_run()
 					}
 				}
 				
-				
 				double pow_alpha0=log10(alpha0), pow_alpha_min=log10(alpha_min);
 				if (alpha_min<alpha0)
 					Nalpha_max=(pow_alpha0-pow_alpha_min)/pow_alpha_step_min;
 				else
-					Nalpha_max=0;
+					Nalpha_max=10;
 				
 				if (!alpha_opt_max_in.size())
 					alpha_opt_max=alpha0;
