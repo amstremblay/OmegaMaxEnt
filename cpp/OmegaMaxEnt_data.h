@@ -268,7 +268,7 @@ static map<Other_params_fl_name, double> Other_params_fl_default_values( {
     {POW_ALPHA_STEP_INIT,0.2},
     {POW_ALPHA_STEP_MIN,0.001},
     {CHI2_ALPHA_SMOOTH_RANGE_2,0.2},
-    {F_SCALE_LALPHA_LCHI2,0.2},
+    {F_SCALE_LALPHA_LCHI2,0.9},
     {FN_FIT_TAU_W,4.0},
     {STD_NORM_PEAK_MAX,0.02},
     {VAR_M2_PEAK_MAX,0.02},

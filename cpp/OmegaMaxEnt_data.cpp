@@ -456,11 +456,11 @@ void OmegaMaxEnt_data::loop_run()
 					if (samp_freq_format.back()!='_') samp_freq_format+='_';
 					samp_freq_format+="tem%1.4g.dat";
 					
-				//	if (initialize_maxent)
-				//	{
+					if (initialize_maxent)
+					{
 						if (!alpha_init_in.size()) alpha0=alpha0_default;
 						if (!alpha_min_in.size()) alpha_min=alpha_min_default;
-				//	}
+					}
 					
 					if (A_ref_file.size() && (A_ref_change || initialize_maxent))
 					{
@@ -469,11 +469,12 @@ void OmegaMaxEnt_data::loop_run()
 				}
 				
 				double pow_alpha0=log10(alpha0), pow_alpha_min=log10(alpha_min);
-				if (alpha_min<alpha0)
-					Nalpha_max=(pow_alpha0-pow_alpha_min)/pow_alpha_step_min;
-				else
-					Nalpha_max=10;
-				
+			
+			//	if (alpha_min<alpha0)
+			//		Nalpha_max=(pow_alpha0-pow_alpha_min)/pow_alpha_step_min;
+			//	else
+			//		Nalpha_max=10;
+			
 				if (!alpha_opt_max_in.size())
 					alpha_opt_max=alpha0;
 				
@@ -619,7 +620,7 @@ void OmegaMaxEnt_data::loop_run()
 				if (pow_alpha_min<=pow_alpha)
 					Nalpha_max=(pow_alpha-pow_alpha_min)/pow_alpha_step_min;
 				else
-					Nalpha_max=0;
+					Nalpha_max=10;
 				if (!Nalpha_in.size()) Nalpha=Nalpha_max;
 				
 				int Nalpha_new=ind_alpha_vec+Nalpha;
@@ -745,6 +746,7 @@ void OmegaMaxEnt_data::loop_run()
 					
 					double xc, yc, x1, y1;
 					
+					vec cfs_poly(2);
 					for (j=ind_curv_start; j<=ind_curv_end; j++)
 					{
 						jmin=j-1;
@@ -777,7 +779,15 @@ void OmegaMaxEnt_data::loop_run()
 						x1=fs*lalpha(j);
 						y1=lchi2(j);
 						
-						dlchi2_lalpha(j-ind_curv_start)=(xc-x1)/(y1-yc);
+						if (xc==xc && yc==yc) dlchi2_lalpha(j-ind_curv_start)=(xc-x1)/(y1-yc);
+						else
+						{
+							
+							if (polyfit(fs*lalpha.rows(jmin,jmax), lchi2.rows(jmin,jmax), 1, 0.5*fs*(lalpha(jmin)+lalpha(jmax)), cfs_poly))
+								dlchi2_lalpha(j-ind_curv_start)=cfs_poly(0);
+							else
+								dlchi2_lalpha(j-ind_curv_start)=0;
+						}
 					 
 						//x1=fs*lalpha(j-1)-xc;
 						//y1=lchi2(j-1)-yc;
@@ -789,18 +799,22 @@ void OmegaMaxEnt_data::loop_run()
 						//total_curv_lchi2_lalpha(j-1)=sum(sign(curv_lchi2_lalpha.rows(0,j-1)) % angle.rows(0,j-1));
 					}
 					
-					dlchi2_lalpha_max=dlchi2_lalpha.max();
+					uword ind_dlchi2_lalpha_max;
+					dlchi2_lalpha_max=dlchi2_lalpha.max(ind_dlchi2_lalpha_max);
 					dlchi2_lalpha_min=dlchi2_lalpha(Ncurv-1);
 					
-					uword N_av=5;
+					int N_av=5;
 					double dlchi2_lalpha_min_av=sum(dlchi2_lalpha.rows(Ncurv-N_av,Ncurv-1))/N_av;
-					
 					
 					int ind_min_curv=0;
 					if (alpha_opt_max_in.size())
 					{
 						while (alpha_vec(ind_min_curv)>alpha_opt_max && ind_min_curv<ind_alpha_vec-1)
 							ind_min_curv++;
+					}
+					else
+					{
+						ind_min_curv=ind_dlchi2_lalpha_max+ind_curv_start;
 					}
 					
 					ind_min_curv=ind_min_curv-ind_curv_start;
