@@ -817,6 +817,8 @@ void OmegaMaxEnt_data::loop_run()
 						ind_min_curv=ind_dlchi2_lalpha_max+ind_curv_start;
 					}
 					
+				//	cout<<"alpha_opt_max: "<<alpha_vec(ind_min_curv)<<endl;
+					
 					ind_min_curv=ind_min_curv-ind_curv_start;
 					if (ind_min_curv<0) ind_min_curv=0;
 					int ind_max_curv=ind_alpha_vec-1;
@@ -1524,6 +1526,9 @@ void OmegaMaxEnt_data::loop_run()
 								
 								xlims[0]=SC-3*SW;
 								xlims[1]=SC+3*SW;
+								
+								if (xlims[0]<w_out(0)) xlims[0]=w_out(0);
+								if (xlims[1]>w_out(Nw_out-1)) xlims[1]=w_out(Nw_out-1);
 						
 								char title_G_Re_w[]="Retarded Green function in frequency";
 								char attrG1[]="'-',color='b'";
@@ -3544,7 +3549,7 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 	vec wKK=w_dense.rows(jKK_l,jKK_r);
 	
 	int NwKK=jKK_r-jKK_l+1;
-//	cout<<"w_dense(jKK_l)	w_dense(jKK_r): "<<setw(20)<<w_dense(jKK_l)<<w_dense(jKK_r)<<endl;
+//	cout<<"w_KK_min, w_KK_max: "<<setw(20)<<w_dense(jKK_l)<<w_dense(jKK_r)<<endl;
 //	cout<<"NwKK: "<<NwKK<<endl;
 	
 	void *par[5];
@@ -3779,6 +3784,13 @@ void OmegaMaxEnt_data::set_output_frequency_grid(vec extr_w)
 	
 	dw_dense=dw_min;
 	w_range=R_SW_G_Re_w_range*SW;
+	double w_range_tmp;
+	if (output_grid_params_in.size() && output_grid_params(0)<0 && output_grid_params(2)>0 && output_grid_params(0)>extr_w(0) && output_grid_params(2)<extr_w(1))
+	{
+		w_range_tmp=-output_grid_params(0);
+		if (output_grid_params(2)>w_range_tmp) w_range_tmp=output_grid_params(2);
+	}
+	if (w_range_tmp>w_range) w_range=w_range_tmp;
 	double log2_Nw_dense=ceil(log2(w_range/dw_dense));
 	int Nw_p=pow(2,log2_Nw_dense-1);
 	vec w_dense_p=linspace<vec>(0,Nw_p,Nw_p+1)*dw_dense;
@@ -17362,11 +17374,14 @@ bool OmegaMaxEnt_data::spline_val(vec x, vec x0, vec coeffs, vec &s)
 				s(j)=a*pow(Dx,3)+b*pow(Dx,2)+c*Dx+d;
 			}
 		}
+/*
 		else
 		{
-			cout<<"spline_val(): the provided position vector has a value outside the boundaries of the spline.\n";
-			return false;
+			cout<<"spline_val() warning: x="<<x(j)<<" outside the boundaries of the spline\n";
+		//	cout<<"spline_val(): the provided position vector has a value outside the boundaries of the spline.\n";
+		//	return false;
 		}
+*/
 	}
 	
 	return true;
