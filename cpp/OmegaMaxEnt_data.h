@@ -43,7 +43,7 @@ using namespace arma;
 //MAIN INPUT FILE PARAMETERS
 
 static string default_input_params_file_name("OmegaMaxEnt_input_params.dat");
-static string template_input_params_file_name("OmegaMaxEnt_input_params_template.dat");
+//static string template_input_params_file_name("OmegaMaxEnt_input_params_template.dat");
 static string other_params_file_name("OmegaMaxEnt_other_params.dat");
 
 static string data_file_param("data file:");
@@ -187,7 +187,7 @@ static map<Other_params_int_name, int> Other_params_int_default_values( {
     {NW_SAMP,11},
 	{NSMOOTH_ERRG,0} } );
 
-enum Other_params_fl_name {F_SW_STD_OMEGA, F_W_RANGE, RMIN_SW_DW, TOL_TEM, TOL_GINF, TOL_NORM, TOL_M1, TOL_M2, TOL_M3, DEFAULT_ERROR_G, ERR_NORM, DEFAULT_ERROR_M, TOL_MEAN_C1,TOL_STD_C1, TOL_RDW, RMIN_DW_DW, RDW_MAX, RW_GRID, RWD_GRID,  MIN_DEF_M, F_ALPHA_INIT, R_WIDTH_ASMIN, F_SMIN, DIFF_CHI2_MAX, TOL_INT_DA, R_C2_H, POW_ALPHA_STEP_INIT, POW_ALPHA_STEP_MIN, CHI2_ALPHA_SMOOTH_RANGE_2, F_SCALE_LALPHA_LCHI2, FN_FIT_TAU_W, STD_NORM_PEAK_MAX, VAR_M2_PEAK_MAX, PEAK_WEIGHT_MIN, RMAX_DLCHI2_LALPHA, F_ALPHA_MIN, SAVE_ALPHA_RANGE, R_PEAK_WIDTH_DW, R_WNCUTOFF_WR, R_DW_DW, R_SW_WR, R_WMAX_WR_MIN,WGT_MIN_SM,R_SW_G_RE_W_RANGE,R_DW_MIN_DW_DENSE, R_WKK_SW, R_SV_MIN};
+enum Other_params_fl_name {F_SW_STD_OMEGA, F_W_RANGE, RMIN_SW_DW, TOL_TEM, TOL_GINF, TOL_NORM, TOL_M1, TOL_M2, TOL_M3, DEFAULT_ERROR_G, ERR_NORM, DEFAULT_ERROR_M, TOL_MEAN_C1,TOL_STD_C1, TOL_RDW, RMIN_DW_DW, RDW_MAX, RW_GRID, RWD_GRID,  MIN_DEF_M, F_ALPHA_INIT, R_WIDTH_ASMIN, F_SMIN, R_CHI2_MIN, TOL_INT_DA, R_C2_H, POW_ALPHA_STEP_INIT, POW_ALPHA_STEP_MIN, CHI2_ALPHA_SMOOTH_RANGE, F_SCALE_LALPHA_LCHI2, FN_FIT_TAU_W, STD_NORM_PEAK_MAX, VAR_M2_PEAK_MAX, PEAK_WEIGHT_MIN, RMAX_DLCHI2_LALPHA, F_ALPHA_MIN, SAVE_ALPHA_RANGE, R_PEAK_WIDTH_DW, R_WNCUTOFF_WR, R_DW_DW, R_SW_WR, R_WMAX_WR_MIN,WGT_MIN_SM,R_SW_G_RE_W_RANGE,R_DW_MIN_DW_DENSE, R_WKK_SW, R_SV_MIN};
 
 static map<Other_params_fl_name, string> Other_params_fl( {
 	{F_SW_STD_OMEGA, "f_SW_std_omega, ratio of main spectral range and standard deviation of spectrum:"},
@@ -213,12 +213,12 @@ static map<Other_params_fl_name, string> Other_params_fl( {
     {F_ALPHA_INIT,"f_alpha_init, initial ratio of entropy and chi2 contributions to the spectrum:"},
     {R_WIDTH_ASMIN,"R_width_ASmin, width of the minimum entropy spectrum relative to spectral function width:"},
     {F_SMIN,"f_Smin, minimum entropy term versus optimal chi2 ratio:"},
-    {DIFF_CHI2_MAX,"diff_chi2_max, maximum relative difference between the chi2 of consecutive values of alpha:"},
+    {R_CHI2_MIN,"R_chi2_min, minimum ratio of chi2 for consecutive values of alpha:"},
     {TOL_INT_DA,"tol_int_dA, tolerance on consecutive values of the integral of |dA| in Newton's method:"},
     {R_C2_H,"rc2H, maximum ratio of the penalization parameter and the maximum eigenvalue of the hessian of chi2:"},
     {POW_ALPHA_STEP_INIT,"pow_alpha_step_init, initial value of the step in log_10(alpha):"},
     {POW_ALPHA_STEP_MIN,"pow_alpha_step_min, minimum value of the step in log_10(alpha):"},
-    {CHI2_ALPHA_SMOOTH_RANGE_2,"chi2_alpha_smooth_range, chi2 vs alpha smoothing range in log10 scale:"},
+    {CHI2_ALPHA_SMOOTH_RANGE,"chi2_alpha_smooth_range, chi2 vs alpha smoothing range in log10 scale:"},
     {F_SCALE_LALPHA_LCHI2,"f_scale_lalpha_lchi2, log(alpha) scale factor with respect to log(chi2) in the curvature calculation:"},
     {FN_FIT_TAU_W, "FNfitTauW, factor to determine the number of values of tau in the polynomial fit:"},
     {STD_NORM_PEAK_MAX,"std_norm_peak_max, relative tolerance for standard deviation of low frequency peak weight:"},
@@ -236,7 +236,7 @@ static map<Other_params_fl_name, string> Other_params_fl( {
 	{R_SW_G_RE_W_RANGE, "R_SW_G_Re_w_range, ratio of total frequency range and main spectral region for the real part of G:"},
 	{R_DW_MIN_DW_DENSE,"R_dw_min_dw_dense, default ratio of the minimal step in the computation grid and the step in the output grid:"},
 	{R_WKK_SW,"R_wKK_SW, frequency region around zero where Re[G] is computed with Kramers-Kronig, divided by the spectral function width:"},
-	{R_SV_MIN,"minimum ratio of matrix singular values in the moments computation in tau:"}} );
+	{R_SV_MIN,"R_sv_min, minimum ratio of matrix singular values in the moments computation in tau:"}} );
 
 static map<Other_params_fl_name, double> Other_params_fl_default_values( {
 	{F_SW_STD_OMEGA,3},
@@ -262,12 +262,12 @@ static map<Other_params_fl_name, double> Other_params_fl_default_values( {
     {F_ALPHA_INIT,1.0e3},
     {R_WIDTH_ASMIN,0.05},
     {F_SMIN,1.0},
-    {DIFF_CHI2_MAX,0.2},
+    {R_CHI2_MIN,0.8},
     {TOL_INT_DA,1.0e-12},
     {R_C2_H,1.0e12},
     {POW_ALPHA_STEP_INIT,0.2},
     {POW_ALPHA_STEP_MIN,0.001},
-    {CHI2_ALPHA_SMOOTH_RANGE_2,0.5},
+    {CHI2_ALPHA_SMOOTH_RANGE,0.5},
     {F_SCALE_LALPHA_LCHI2,0.2},
     {FN_FIT_TAU_W,4.0},
     {STD_NORM_PEAK_MAX,0.02},
@@ -304,13 +304,15 @@ extern "C++"
         ~OmegaMaxEnt_data();
 		
 		//main function for this class. Only function called from outside the class.
-        void loop_run();
+        int loop_run();
 
 		void display_license();
 		void display_notice();
         
     private:
 		
+		// initialize all parameters in OmegaMaxEnt_params.dat
+		void init_params();
 		// load input parameters, like data file name, covariance file, default model, etc, from file OmegaMaxEnt_input_params.dat
         bool load_input_params();
 		// load internal computation parameters from file OmegaMaxEnt_other_params.dat, which contains the default values at initialization
@@ -522,13 +524,13 @@ extern "C++"
         //! internal computation parameters
 		int Nn_min, Nn_max, Nw_min, Nw_max, Nn_fit_max, Nn_fit_fin, Niter_dA_max, Nalpha_max_figs, Nwsamp, Nsmooth_errG;
 		
-        double f_w_range, f_SW_std_omega, f_width_grid_dens, tol_tem, tol_G_inf, tol_norm, tol_R_G0_Gbeta, tol_M1, tol_M2, tol_M3, default_error_G, err_norm, default_error_M, tol_mean_C1, tol_std_C1, tol_rdw, Rmin_Dw_dw, Rdw_max, RW_grid, RWD_grid, minDefM, f_alpha_init, R_width_ASmin, f_Smin, diff_chi2_max, tol_int_dA, rc2H, pow_alpha_step_init, pow_alpha_step_min, chi2_alpha_smooth_range, f_scale_lalpha_lchi2, FNfitTauW, std_norm_peak_max, varM2_peak_max, peak_weight_min, RMAX_dlchi2_lalpha, f_alpha_min, save_alpha_range,  Rmin_SW_dw, R_peak_width_dw, R_wncutoff_wr, R_Dw_dw, R_SW_wr, R_wmax_wr_min, wgt_min_sm, R_SW_G_Re_w_range, R_dw_min_dw_dense, R_wKK_SW, R_sv_min;
+        double f_w_range, f_SW_std_omega, f_width_grid_dens, tol_tem, tol_G_inf, tol_norm, tol_R_G0_Gbeta, tol_M1, tol_M2, tol_M3, default_error_G, err_norm, default_error_M, tol_mean_C1, tol_std_C1, tol_rdw, Rmin_Dw_dw, Rdw_max, RW_grid, RWD_grid, minDefM, f_alpha_init, R_width_ASmin, f_Smin, R_chi2_min, tol_int_dA, rc2H, pow_alpha_step_init, pow_alpha_step_min, chi2_alpha_smooth_range, f_scale_lalpha_lchi2, FNfitTauW, std_norm_peak_max, varM2_peak_max, peak_weight_min, RMAX_dlchi2_lalpha, f_alpha_min, save_alpha_range,  Rmin_SW_dw, R_peak_width_dw, R_wncutoff_wr, R_Dw_dw, R_SW_wr, R_wmax_wr_min, wgt_min_sm, R_SW_G_Re_w_range, R_dw_min_dw_dense, R_wKK_SW, R_sv_min;
 		
 		//! input parameters
 		string input_dir_in, input_dir, data_file_name_in, data_file_name, boson_in, tau_GF_in, tem_in, M0_in, M1_in, errM1_in, M2_in, errM2_in, M3_in, errM3_in, omega_n_trunc_in, G_omega_inf_in, col_Gr_in, col_Gi_in, error_file_in, error_file, col_errGr_in, col_errGi_in, covar_re_re_file_in, covar_re_re_file, covar_im_im_file_in, covar_im_im_file, covar_re_im_file_in, covar_re_im_file, col_Gtau_in, col_errGtau_in, covar_tau_file_in, covar_tau_file, cutoff_wn_in, SW_in, SC_in, w_origin_in, step_omega_in, grid_omega_file_in, grid_omega_file, use_grid_params_in, omega_grid_params_in, eval_moments_in, maxM_in, def_model_file_in, def_model_file, init_spectr_func_file_in, init_spectr_func_file, default_model_center_in, default_model_width_in, default_model_shape_in, non_uniform_grid_in, Ginf_finite_in, noise_params_in, output_dir_in, output_dir, output_dir_fin, output_name_suffix, output_name_format, w_sample_in, Nalpha_in, alpha_min_in, alpha_init_in, alpha_opt_max_in, alpha_opt_min_in, alpha_save_max_in, alpha_save_min_in, A_ref_file, A_ref_file_in, def_model_output_file_name, A_opt_name_format, A_opt_err_name_format, output_G_format, output_error_format, auto_corr_error_G_format, output_G_opt_format, error_G_opt_format, auto_corr_error_G_opt_format, output_moments_format, output_moments_opt_format, chi2_vs_alpha_format, Asamp_vs_alpha_format, samp_freq_format, A_opt_name, A_opt_name_rm, A_opt_err_name_rm, A_alpha_min_name, output_G_opt_rm, error_G_opt_rm, auto_corr_error_G_opt_rm, output_moments_opt_rm, G_re_omega_name, Pade_G_re_omega_name, G_re_t_name, output_grid_params_in, compute_Pade_in, N_Pade_in, eta_Pade_in;
 		//interp_type, interp_type_in
 		
-        bool use_grid_params, use_const_dw, use_exp_step, displ_prep_figs, displ_adv_prep_figs, print_other_params, boson, tau_GF, initialize, initialize_maxent, execute_maxent, save_spec_func, print_alpha, displ_optim_figs, cov_diag, moments_provided, eval_moments, covm_diag, wc_exists, w_exists, SW_set, SC_set, peak_exists, read_params, read_other_params, params_loaded, other_params_loaded, M1_set, M2_set, main_spectral_region_set, A_ref_change, show_optimal_alpha_figs, show_lowest_alpha_figs, show_alpha_curves, preproc_complete, Du_constant, non_uniform_grid, w_origin_set, interactive_mode, Ginf_finite, alpha_min_too_high, error_provided, compute_Pade, dG_dtau_computed;
+        bool data_file_loaded, use_grid_params, use_const_dw, use_exp_step, displ_prep_figs, displ_adv_prep_figs, print_other_params, boson, tau_GF, initialize, initialize_maxent, execute_maxent, save_spec_func, print_alpha, displ_optim_figs, cov_diag, moments_provided, eval_moments, covm_diag, wc_exists, w_exists, SW_set, SC_set, peak_exists, read_params, read_other_params, params_loaded, other_params_loaded, M1_set, M2_set, main_spectral_region_set, A_ref_change, show_optimal_alpha_figs, show_lowest_alpha_figs, show_alpha_curves, preproc_complete, Du_constant, non_uniform_grid, w_origin_set, interactive_mode, Ginf_finite, alpha_min_too_high, error_provided, compute_Pade, dG_dtau_computed;
 		
         double tem, cutoff_wn, SW, SC, w_origin, step_omega, signG, alpha0, alpha0_default, alpha, pow_alpha_step, alpha_min_default, alpha_min, alpha_opt_max, alpha_opt_min, M0, errM0, M1, errM1, M2, errM2, M3, errM3, std_omega, omega_n_trunc, wl, wr, w0l, w0r, dwl, dwr, dw_peak, M0t, M1n, default_model_width, default_model_center, default_model_shape, dlchi2_lalpha_min, dlchi2_lalpha_max, alpha_save_max, alpha_save_min, lchi2_lalpha_lgth, G_omega_inf, eta_Pade;
         
@@ -546,6 +548,8 @@ extern "C++"
 		vec integ_P_A_alpha, pow_alphaD_vec;
 		
 		bool wn_sign_change, wn_inverted;
+		
+		int success;
 		
 		bool compute_P_alpha_G, uniform_grid, gaussian_grid_density;
 		
