@@ -11515,7 +11515,6 @@ void OmegaMaxEnt_data::minimize()
 			
 			if (save_spec_func)
 			{
-				
 				M_save.zeros(Nw,2);
 				M_save.col(0)=w;
 				if (!boson || col_Gi>0)
@@ -11524,7 +11523,6 @@ void OmegaMaxEnt_data::minimize()
 					M_save.submat(0,1,Nw-2,1)=A;
 				sprintf(file_name,output_name_format.c_str(),tem,alpha);
 				M_save.save(file_name,raw_ascii);
-				
 				
 				if (!boson || col_Gi>0)
 				{
@@ -21487,7 +21485,6 @@ void OmegaMaxEnt_data::init_params()
 	displ_prep_figs=false;
 	displ_adv_prep_figs=false;
 	print_other_params=false;
-	interactive_mode=true;
 	print_alpha=false;
 	show_optimal_alpha_figs=true;
 	show_lowest_alpha_figs=true;
@@ -22565,7 +22562,9 @@ bool OmegaMaxEnt_data::load_other_params()
     if (file)
     {
         string str;
-        
+		
+		int j=0;
+		
         if (!print_other_params)
             cout<<"\nOTHER PARAMETERS (different from default ones):\n\n";
         else
@@ -22580,13 +22579,15 @@ bool OmegaMaxEnt_data::load_other_params()
 				Nn_min=stoi(str);
 				if (Nn_min!=Other_params_int_default_values[NN_MIN] || print_other_params)
 					cout<<Other_params_int[NN_MIN]<<" "<<Nn_min<<endl;
+				j++;
 			}
-            if (str.compare(0,Other_params_int[NN_MAX].size(),Other_params_int[NN_MAX])==0)
+            else if (str.compare(0,Other_params_int[NN_MAX].size(),Other_params_int[NN_MAX])==0)
             {
                 str=str.substr(Other_params_int[NN_MAX].size());
                 Nn_max=stoi(str);
                 if (Nn_max!=Other_params_int_default_values[NN_MAX] || print_other_params)
                     cout<<Other_params_int[NN_MAX]<<" "<<Nn_max<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_int[NW_MIN].size(),Other_params_int[NW_MIN])==0)
             {
@@ -22594,6 +22595,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 Nw_min=stoi(str);
                 if (Nw_min!=Other_params_int_default_values[NW_MIN] || print_other_params)
                     cout<<Other_params_int[NW_MIN]<<" "<<Nw_min<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_int[NW_MAX].size(),Other_params_int[NW_MAX])==0)
             {
@@ -22601,6 +22603,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 Nw_max=stoi(str);
                 if (Nw_max!=Other_params_int_default_values[NW_MAX] || print_other_params)
                     cout<<Other_params_int[NW_MAX]<<" "<<Nw_max<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_int[NN_FIT_MAX].size(),Other_params_int[NN_FIT_MAX])==0)
             {
@@ -22608,6 +22611,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 Nn_fit_max=stoi(str);
                 if (Nn_fit_max!=Other_params_int_default_values[NN_FIT_MAX] || print_other_params)
                     cout<<Other_params_int[NN_FIT_MAX]<<" "<<Nn_fit_max<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_int[NN_FIT_FIN].size(),Other_params_int[NN_FIT_FIN])==0)
             {
@@ -22615,6 +22619,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 Nn_fit_fin=stoi(str);
                 if (Nn_fit_fin!=Other_params_int_default_values[NN_FIT_FIN] || print_other_params)
                     cout<<Other_params_int[NN_FIT_FIN]<<" "<<Nn_fit_fin<<endl;
+				j++;
             }
 			else if (str.compare(0,Other_params_int[NN_AS_MIN].size(),Other_params_int[NN_AS_MIN])==0)
 			{
@@ -22622,6 +22627,7 @@ bool OmegaMaxEnt_data::load_other_params()
 				Nn_as_min=stoi(str);
 				if (Nn_as_min!=Other_params_int_default_values[NN_AS_MIN] || print_other_params)
 					cout<<Other_params_int[NN_AS_MIN]<<" "<<Nn_as_min<<endl;
+				j++;
 			}
 			/*
             else if (str.compare(0,Other_params_int[NWN_TEST_METAL].size(),Other_params_int[NWN_TEST_METAL])==0)
@@ -22638,6 +22644,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 Niter_dA_max=stoi(str);
                 if (Niter_dA_max!=Other_params_int_default_values[N_ITER_DA_MAX] || print_other_params)
                     cout<<Other_params_int[N_ITER_DA_MAX]<<" "<<Niter_dA_max<<endl;
+				j++;
             }
 			/*
             else if (str.compare(0,Other_params_int[N_ALPHA_MAX_FIGS].size(),Other_params_int[N_ALPHA_MAX_FIGS])==0)
@@ -22654,6 +22661,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 Nwsamp=stoi(str);
                 if (Nwsamp!=Other_params_int_default_values[NW_SAMP] || print_other_params)
                     cout<<Other_params_int[NW_SAMP]<<" "<<Nwsamp<<endl;
+				j++;
             }
 			else if (str.compare(0,Other_params_int[NSMOOTH_ERRG].size(),Other_params_int[NSMOOTH_ERRG])==0)
 			{
@@ -22661,6 +22669,7 @@ bool OmegaMaxEnt_data::load_other_params()
 				Nsmooth_errG=stoi(str);
 				if (Nsmooth_errG!=Other_params_int_default_values[NSMOOTH_ERRG] || print_other_params)
 					cout<<Other_params_int[NSMOOTH_ERRG]<<" "<<Nsmooth_errG<<endl;
+				j++;
 			}
 			else if (str.compare(0,Other_params_fl[F_SW_STD_OMEGA].size(),Other_params_fl[F_SW_STD_OMEGA])==0)
 			{
@@ -22668,6 +22677,7 @@ bool OmegaMaxEnt_data::load_other_params()
 				f_SW_std_omega=stod(str);
 				if (f_SW_std_omega!=Other_params_fl_default_values[F_SW_STD_OMEGA] || print_other_params)
 					cout<<Other_params_fl[F_SW_STD_OMEGA]<<" "<<f_SW_std_omega<<endl;
+				j++;
 			}
             else if (str.compare(0,Other_params_fl[F_W_RANGE].size(),Other_params_fl[F_W_RANGE])==0)
             {
@@ -22675,6 +22685,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 f_w_range=stod(str);
                 if (f_w_range!=Other_params_fl_default_values[F_W_RANGE] || print_other_params)
                     cout<<Other_params_fl[F_W_RANGE]<<" "<<f_w_range<<endl;
+				j++;
             }
 			/*
 			else if (str.compare(0,Other_params_fl[F_WIDTH_GRID_DENS].size(),Other_params_fl[F_WIDTH_GRID_DENS])==0)
@@ -22691,6 +22702,7 @@ bool OmegaMaxEnt_data::load_other_params()
 				Rmin_SW_dw=stod(str);
 				if (Rmin_SW_dw!=Other_params_fl_default_values[RMIN_SW_DW] || print_other_params)
 					cout<<Other_params_fl[RMIN_SW_DW]<<" "<<Rmin_SW_dw<<endl;
+				j++;
 			}
             else if (str.compare(0,Other_params_fl[TOL_TEM].size(),Other_params_fl[TOL_TEM])==0)
             {
@@ -22698,6 +22710,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 tol_tem=stod(str);
                 if (tol_tem!=Other_params_fl_default_values[TOL_TEM] || print_other_params)
                     cout<<Other_params_fl[TOL_TEM]<<" "<<tol_tem<<endl;
+				j++;
             }
 			else if (str.compare(0,Other_params_fl[TOL_GINF].size(),Other_params_fl[TOL_GINF])==0)
 			{
@@ -22705,6 +22718,7 @@ bool OmegaMaxEnt_data::load_other_params()
 				tol_G_inf=stod(str);
 				if (tol_G_inf!=Other_params_fl_default_values[TOL_GINF] || print_other_params)
 					cout<<Other_params_fl[TOL_GINF]<<" "<<tol_G_inf<<endl;
+				j++;
 			}
             else if (str.compare(0,Other_params_fl[TOL_NORM].size(),Other_params_fl[TOL_NORM])==0)
             {
@@ -22712,6 +22726,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 tol_norm=stod(str);
                 if (tol_norm!=Other_params_fl_default_values[TOL_NORM] || print_other_params)
                     cout<<Other_params_fl[TOL_NORM]<<" "<<tol_norm<<endl;
+				j++;
             }
 			/*
             else if (str.compare(0,Other_params_fl[TOL_R_G0_BETA].size(),Other_params_fl[TOL_R_G0_BETA])==0)
@@ -22728,6 +22743,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 tol_M1=stod(str);
                 if (tol_M1!=Other_params_fl_default_values[TOL_M1] || print_other_params)
                     cout<<Other_params_fl[TOL_M1]<<" "<<tol_M1<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_fl[TOL_M2].size(),Other_params_fl[TOL_M2])==0)
             {
@@ -22735,6 +22751,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 tol_M2=stod(str);
                 if (tol_M2!=Other_params_fl_default_values[TOL_M2] || print_other_params)
                     cout<<Other_params_fl[TOL_M2]<<" "<<tol_M2<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_fl[TOL_M3].size(),Other_params_fl[TOL_M3])==0)
             {
@@ -22742,6 +22759,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 tol_M3=stod(str);
                 if (tol_M3!=Other_params_fl_default_values[TOL_M3] || print_other_params)
                     cout<<Other_params_fl[TOL_M3]<<" "<<tol_M3<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_fl[DEFAULT_ERROR_G].size(),Other_params_fl[DEFAULT_ERROR_G])==0)
             {
@@ -22749,6 +22767,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 default_error_G=stod(str);
                 if (default_error_G!=Other_params_fl_default_values[DEFAULT_ERROR_G] || print_other_params)
                     cout<<Other_params_fl[DEFAULT_ERROR_G]<<" "<<default_error_G<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_fl[ERR_NORM].size(),Other_params_fl[ERR_NORM])==0)
             {
@@ -22756,6 +22775,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 err_norm=stod(str);
                 if (err_norm!=Other_params_fl_default_values[ERR_NORM] || print_other_params)
                     cout<<Other_params_fl[ERR_NORM]<<" "<<err_norm<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_fl[DEFAULT_ERROR_M].size(),Other_params_fl[DEFAULT_ERROR_M])==0)
             {
@@ -22763,6 +22783,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 default_error_M=stod(str);
                 if (default_error_M!=Other_params_fl_default_values[DEFAULT_ERROR_M] || print_other_params)
                     cout<<Other_params_fl[DEFAULT_ERROR_M]<<" "<<default_error_M<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_fl[TOL_MEAN_C1].size(),Other_params_fl[TOL_MEAN_C1])==0)
             {
@@ -22770,6 +22791,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 tol_mean_C1=stod(str);
                 if (tol_mean_C1!=Other_params_fl_default_values[TOL_MEAN_C1] || print_other_params)
                     cout<<Other_params_fl[TOL_MEAN_C1]<<" "<<tol_mean_C1<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_fl[TOL_STD_C1].size(),Other_params_fl[TOL_STD_C1])==0)
             {
@@ -22777,6 +22799,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 tol_std_C1=stod(str);
                 if (tol_std_C1!=Other_params_fl_default_values[TOL_STD_C1] || print_other_params)
                     cout<<Other_params_fl[TOL_STD_C1]<<" "<<tol_std_C1<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_fl[TOL_RDW].size(),Other_params_fl[TOL_RDW])==0)
             {
@@ -22784,6 +22807,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 tol_rdw=stod(str);
                 if (tol_rdw!=Other_params_fl_default_values[TOL_RDW] || print_other_params)
                     cout<<Other_params_fl[TOL_RDW]<<" "<<tol_rdw<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_fl[RMIN_DW_DW].size(),Other_params_fl[RMIN_DW_DW])==0)
             {
@@ -22791,6 +22815,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 Rmin_Dw_dw=stod(str);
                 if (Rmin_Dw_dw!=Other_params_fl_default_values[RMIN_DW_DW] || print_other_params)
                     cout<<Other_params_fl[RMIN_DW_DW]<<" "<<Rmin_Dw_dw<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_fl[RDW_MAX].size(),Other_params_fl[RDW_MAX])==0)
             {
@@ -22798,6 +22823,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 Rdw_max=stod(str);
                 if (Rdw_max!=Other_params_fl_default_values[RDW_MAX] || print_other_params)
                     cout<<Other_params_fl[RDW_MAX]<<" "<<Rdw_max<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_fl[RW_GRID].size(),Other_params_fl[RW_GRID])==0)
             {
@@ -22805,6 +22831,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 RW_grid=stod(str);
                 if (RW_grid!=Other_params_fl_default_values[RW_GRID] || print_other_params)
                     cout<<Other_params_fl[RW_GRID]<<" "<<RW_grid<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_fl[RWD_GRID].size(),Other_params_fl[RWD_GRID])==0)
             {
@@ -22812,6 +22839,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 RWD_grid=stod(str);
                 if (RWD_grid!=Other_params_fl_default_values[RWD_GRID] || print_other_params)
                     cout<<Other_params_fl[RWD_GRID]<<" "<<RWD_grid<<endl;
+				j++;
             }
 			/*
             else if (str.compare(0,Other_params_fl[TOL_QUAD].size(),Other_params_fl[TOL_QUAD])==0)
@@ -22827,6 +22855,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 minDefM=stod(str);
                 if (minDefM!=Other_params_fl_default_values[MIN_DEF_M] || print_other_params)
                     cout<<Other_params_fl[MIN_DEF_M]<<" "<<minDefM<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_fl[F_ALPHA_INIT].size(),Other_params_fl[F_ALPHA_INIT])==0)
             {
@@ -22834,6 +22863,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 f_alpha_init=stod(str);
                 if (f_alpha_init!=Other_params_fl_default_values[F_ALPHA_INIT] || print_other_params)
                     cout<<Other_params_fl[F_ALPHA_INIT]<<" "<<f_alpha_init<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_fl[R_WIDTH_ASMIN].size(),Other_params_fl[R_WIDTH_ASMIN])==0)
             {
@@ -22841,6 +22871,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 R_width_ASmin=stod(str);
                 if (R_width_ASmin!=Other_params_fl_default_values[R_WIDTH_ASMIN] || print_other_params)
                     cout<<Other_params_fl[R_WIDTH_ASMIN]<<" "<<R_width_ASmin<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_fl[F_SMIN].size(),Other_params_fl[F_SMIN])==0)
             {
@@ -22848,6 +22879,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 f_Smin=stod(str);
                 if (f_Smin!=Other_params_fl_default_values[F_SMIN] || print_other_params)
                     cout<<Other_params_fl[F_SMIN]<<" "<<f_Smin<<endl;
+				j++;
             }
 			/*
             else if (str.compare(0,Other_params_fl[F_CHI2_SAVE].size(),Other_params_fl[F_CHI2_SAVE])==0)
@@ -22863,6 +22895,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 R_chi2_min=stod(str);
                 if (R_chi2_min!=Other_params_fl_default_values[R_CHI2_MIN] || print_other_params)
                     cout<<Other_params_fl[R_CHI2_MIN]<<" "<<R_chi2_min<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_fl[TOL_INT_DA].size(),Other_params_fl[TOL_INT_DA])==0)
             {
@@ -22870,6 +22903,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 tol_int_dA=stod(str);
                 if (tol_int_dA!=Other_params_fl_default_values[TOL_INT_DA] || print_other_params)
                     cout<<Other_params_fl[TOL_INT_DA]<<" "<<tol_int_dA<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_fl[R_C2_H].size(),Other_params_fl[R_C2_H])==0)
             {
@@ -22877,6 +22911,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 rc2H=stod(str);
                 if (rc2H!=Other_params_fl_default_values[R_C2_H] || print_other_params)
                     cout<<Other_params_fl[R_C2_H]<<" "<<rc2H<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_fl[POW_ALPHA_STEP_INIT].size(),Other_params_fl[POW_ALPHA_STEP_INIT])==0)
             {
@@ -22884,6 +22919,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 pow_alpha_step_init=stod(str);
                 if (pow_alpha_step_init!=Other_params_fl_default_values[POW_ALPHA_STEP_INIT] || print_other_params)
                     cout<<Other_params_fl[POW_ALPHA_STEP_INIT]<<" "<<pow_alpha_step_init<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_fl[POW_ALPHA_STEP_MIN].size(),Other_params_fl[POW_ALPHA_STEP_MIN])==0)
             {
@@ -22891,6 +22927,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 pow_alpha_step_min=stod(str);
                 if (pow_alpha_step_min!=Other_params_fl_default_values[POW_ALPHA_STEP_MIN] || print_other_params)
                     cout<<Other_params_fl[POW_ALPHA_STEP_MIN]<<" "<<pow_alpha_step_min<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_fl[CHI2_ALPHA_SMOOTH_RANGE].size(),Other_params_fl[CHI2_ALPHA_SMOOTH_RANGE])==0)
             {
@@ -22898,6 +22935,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 chi2_alpha_smooth_range=stod(str);
                 if (chi2_alpha_smooth_range!=Other_params_fl_default_values[CHI2_ALPHA_SMOOTH_RANGE] || print_other_params)
                     cout<<Other_params_fl[CHI2_ALPHA_SMOOTH_RANGE]<<" "<<chi2_alpha_smooth_range<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_fl[F_SCALE_LALPHA_LCHI2].size(),Other_params_fl[F_SCALE_LALPHA_LCHI2])==0)
             {
@@ -22905,6 +22943,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 f_scale_lalpha_lchi2=stod(str);
                 if (f_scale_lalpha_lchi2!=Other_params_fl_default_values[F_SCALE_LALPHA_LCHI2] || print_other_params)
                     cout<<Other_params_fl[F_SCALE_LALPHA_LCHI2]<<" "<<f_scale_lalpha_lchi2<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_fl[FN_FIT_TAU_W].size(),Other_params_fl[FN_FIT_TAU_W])==0)
             {
@@ -22912,6 +22951,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 FNfitTauW=stod(str);
                 if (FNfitTauW!=Other_params_fl_default_values[FN_FIT_TAU_W] || print_other_params)
                     cout<<Other_params_fl[FN_FIT_TAU_W]<<" "<<FNfitTauW<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_fl[STD_NORM_PEAK_MAX].size(),Other_params_fl[STD_NORM_PEAK_MAX])==0)
             {
@@ -22919,6 +22959,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 std_norm_peak_max=stod(str);
                 if (std_norm_peak_max!=Other_params_fl_default_values[STD_NORM_PEAK_MAX] || print_other_params)
                     cout<<Other_params_fl[STD_NORM_PEAK_MAX]<<" "<<std_norm_peak_max<<endl;
+				j++;
             }
             else if (str.compare(0,Other_params_fl[VAR_M2_PEAK_MAX].size(),Other_params_fl[VAR_M2_PEAK_MAX])==0)
             {
@@ -22926,6 +22967,7 @@ bool OmegaMaxEnt_data::load_other_params()
                 varM2_peak_max=stod(str);
                 if (varM2_peak_max!=Other_params_fl_default_values[VAR_M2_PEAK_MAX] || print_other_params)
                     cout<<Other_params_fl[VAR_M2_PEAK_MAX]<<" "<<varM2_peak_max<<endl;
+				j++;
             }
 			else if (str.compare(0,Other_params_fl[PEAK_WEIGHT_MIN].size(),Other_params_fl[PEAK_WEIGHT_MIN])==0)
 			{
@@ -22933,6 +22975,7 @@ bool OmegaMaxEnt_data::load_other_params()
 				peak_weight_min=stod(str);
 				if (peak_weight_min!=Other_params_fl_default_values[PEAK_WEIGHT_MIN] || print_other_params)
 					cout<<Other_params_fl[PEAK_WEIGHT_MIN]<<" "<<peak_weight_min<<endl;
+				j++;
 			}
 			/*
             else if (str.compare(0,Other_params_fl[R_D2G_CHI_PEAK].size(),Other_params_fl[R_D2G_CHI_PEAK])==0)
@@ -22949,6 +22992,7 @@ bool OmegaMaxEnt_data::load_other_params()
 				RMAX_dlchi2_lalpha=stod(str);
 				if (RMAX_dlchi2_lalpha!=Other_params_fl_default_values[RMAX_DLCHI2_LALPHA] || print_other_params)
 					cout<<Other_params_fl[RMAX_DLCHI2_LALPHA]<<" "<<RMAX_dlchi2_lalpha<<endl;
+				j++;
 			}
 			else if (str.compare(0,Other_params_fl[F_ALPHA_MIN].size(),Other_params_fl[F_ALPHA_MIN])==0)
 			{
@@ -22956,6 +23000,7 @@ bool OmegaMaxEnt_data::load_other_params()
 				f_alpha_min=stod(str);
 				if (f_alpha_min!=Other_params_fl_default_values[F_ALPHA_MIN] || print_other_params)
 					cout<<Other_params_fl[F_ALPHA_MIN]<<" "<<f_alpha_min<<endl;
+				j++;
 			}
 			else if (str.compare(0,Other_params_fl[SAVE_ALPHA_RANGE].size(),Other_params_fl[SAVE_ALPHA_RANGE])==0)
 			{
@@ -22963,6 +23008,7 @@ bool OmegaMaxEnt_data::load_other_params()
 				save_alpha_range=stod(str);
 				if (save_alpha_range!=Other_params_fl_default_values[SAVE_ALPHA_RANGE] || print_other_params)
 					cout<<Other_params_fl[SAVE_ALPHA_RANGE]<<" "<<save_alpha_range<<endl;
+				j++;
 			}
 			else if (str.compare(0,Other_params_fl[R_PEAK_WIDTH_DW].size(),Other_params_fl[R_PEAK_WIDTH_DW])==0)
 			{
@@ -22970,6 +23016,7 @@ bool OmegaMaxEnt_data::load_other_params()
 				R_peak_width_dw=stod(str);
 				if (R_peak_width_dw!=Other_params_fl_default_values[R_PEAK_WIDTH_DW] || print_other_params)
 					cout<<Other_params_fl[R_PEAK_WIDTH_DW]<<" "<<R_peak_width_dw<<endl;
+				j++;
 			}
 			else if (str.compare(0,Other_params_fl[R_WNCUTOFF_WR].size(),Other_params_fl[R_WNCUTOFF_WR])==0)
 			{
@@ -22977,6 +23024,7 @@ bool OmegaMaxEnt_data::load_other_params()
 				R_wncutoff_wr=stod(str);
 				if (R_wncutoff_wr!=Other_params_fl_default_values[R_WNCUTOFF_WR] || print_other_params)
 					cout<<Other_params_fl[R_WNCUTOFF_WR]<<" "<<R_wncutoff_wr<<endl;
+				j++;
 			}
 			else if (str.compare(0,Other_params_fl[R_DW_DW].size(),Other_params_fl[R_DW_DW])==0)
 			{
@@ -22984,6 +23032,7 @@ bool OmegaMaxEnt_data::load_other_params()
 				R_Dw_dw=stod(str);
 				if (R_Dw_dw!=Other_params_fl_default_values[R_DW_DW] || print_other_params)
 					cout<<Other_params_fl[R_DW_DW]<<" "<<R_Dw_dw<<endl;
+				j++;
 			}
 			else if (str.compare(0,Other_params_fl[R_SW_WR].size(),Other_params_fl[R_SW_WR])==0)
 			{
@@ -22991,6 +23040,7 @@ bool OmegaMaxEnt_data::load_other_params()
 				R_SW_wr=stod(str);
 				if (R_SW_wr!=Other_params_fl_default_values[R_SW_WR] || print_other_params)
 					cout<<Other_params_fl[R_SW_WR]<<" "<<R_SW_wr<<endl;
+				j++;
 			}
 			else if (str.compare(0,Other_params_fl[R_WMAX_WR_MIN].size(),Other_params_fl[R_WMAX_WR_MIN])==0)
 			{
@@ -22998,6 +23048,7 @@ bool OmegaMaxEnt_data::load_other_params()
 				R_wmax_wr_min=stod(str);
 				if (R_wmax_wr_min!=Other_params_fl_default_values[R_WMAX_WR_MIN] || print_other_params)
 					cout<<Other_params_fl[R_WMAX_WR_MIN]<<" "<<R_wmax_wr_min<<endl;
+				j++;
 			}
 			else if (str.compare(0,Other_params_fl[WGT_MIN_SM].size(),Other_params_fl[WGT_MIN_SM])==0)
 			{
@@ -23005,6 +23056,7 @@ bool OmegaMaxEnt_data::load_other_params()
 				wgt_min_sm=stod(str);
 				if (wgt_min_sm!=Other_params_fl_default_values[WGT_MIN_SM] || print_other_params)
 					cout<<Other_params_fl[WGT_MIN_SM]<<" "<<wgt_min_sm<<endl;
+				j++;
 			}
 			else if (str.compare(0,Other_params_fl[R_SW_G_RE_W_RANGE].size(),Other_params_fl[R_SW_G_RE_W_RANGE])==0)
 			{
@@ -23012,6 +23064,7 @@ bool OmegaMaxEnt_data::load_other_params()
 				R_SW_G_Re_w_range=stod(str);
 				if (R_SW_G_Re_w_range!=Other_params_fl_default_values[R_SW_G_RE_W_RANGE] || print_other_params)
 					cout<<Other_params_fl[R_SW_G_RE_W_RANGE]<<" "<<R_SW_G_Re_w_range<<endl;
+				j++;
 			}
 			else if (str.compare(0,Other_params_fl[R_DW_MIN_DW_DENSE].size(),Other_params_fl[R_DW_MIN_DW_DENSE])==0)
 			{
@@ -23019,6 +23072,7 @@ bool OmegaMaxEnt_data::load_other_params()
 				R_dw_min_dw_dense=stod(str);
 				if (R_dw_min_dw_dense!=Other_params_fl_default_values[R_DW_MIN_DW_DENSE] || print_other_params)
 					cout<<Other_params_fl[R_DW_MIN_DW_DENSE]<<" "<<R_dw_min_dw_dense<<endl;
+				j++;
 			}
 			else if (str.compare(0,Other_params_fl[R_WKK_SW].size(),Other_params_fl[R_WKK_SW])==0)
 			{
@@ -23026,6 +23080,7 @@ bool OmegaMaxEnt_data::load_other_params()
 				R_wKK_SW=stod(str);
 				if (R_wKK_SW!=Other_params_fl_default_values[R_WKK_SW] || print_other_params)
 					cout<<Other_params_fl[R_WKK_SW]<<" "<<R_wKK_SW<<endl;
+				j++;
 			}
 			else if (str.compare(0,Other_params_fl[R_SV_MIN].size(),Other_params_fl[R_SV_MIN])==0)
 			{
@@ -23033,6 +23088,7 @@ bool OmegaMaxEnt_data::load_other_params()
 				R_sv_min=stod(str);
 				if (R_sv_min!=Other_params_fl_default_values[R_SV_MIN] || print_other_params)
 					cout<<Other_params_fl[R_SV_MIN]<<" "<<R_sv_min<<endl;
+				j++;
 			}
 			
             getline(file,str);
@@ -23040,6 +23096,16 @@ bool OmegaMaxEnt_data::load_other_params()
         file.close();
 		
 		cout<<endl;
+		
+		int Ntmp=Other_params_int.size()+Other_params_fl.size();
+		if (j!=Ntmp)
+		{
+			cout<<"load_other_params() error: number of parameters loaded not equal to the total number of parameters\n";
+			cout<<"total number of parameters: "<<Ntmp<<endl;
+			cout<<"number of parameters loaded: "<<j<<endl;
+			
+			return false;
+		}
     }
     else
     {
