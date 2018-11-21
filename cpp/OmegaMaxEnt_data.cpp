@@ -19037,7 +19037,7 @@ bool OmegaMaxEnt_data::test_low_energy_peak_fermions()
 	int nmax=n(Nn-1);
 	
 	int NCnmin=2;
-	int NCnmax=4;
+	int NCnmax=3;
 	int NNCn=NCnmax-NCnmin+1;
 	ivec NCn=linspace<ivec>(NCnmin,NCnmax,NNCn);
 	
