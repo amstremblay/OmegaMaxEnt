@@ -9564,7 +9564,7 @@ bool OmegaMaxEnt_data::compute_dG_dtau()
 	np=Nfit-1;
 	X.zeros(Nfit,np+1);
 	for (p=0; p<=np; p++)
-		X.col(p)=pow(tau.rows(0,Nfit-1),p);
+		X.col(p)=pow(tau.rows(0,Nfit-1)/tau(Nfit-1),p);
 	
 	mat U, V;
 	vec sK;
@@ -9601,7 +9601,7 @@ bool OmegaMaxEnt_data::compute_dG_dtau()
 		{
 			X=zeros<mat>(Nfit,np+1);
 			for (p=0; p<=np; p++)
-				X.col(p)=pow(tau.rows(0,Nfit-1),p);
+				X.col(p)=pow(tau.rows(0,Nfit-1)/tau(Nfit-1),p);
 			
 			Gchi2tmp=Gtau.rows(0,Nfit-1);
 			CG=Ctau_all.submat(0,0,Nfit-1,Nfit-1);
@@ -9611,9 +9611,9 @@ bool OmegaMaxEnt_data::compute_dG_dtau()
 			BM=(X.t())*invCG*Gchi2tmp;
 			Mtmp=solve(AM,BM);
 			G0(Nfit-np-1,np-npmin)=Mtmp(0);
-			dG0(Nfit-np-1,np-npmin)=Mtmp(1);
-			d2G0(Nfit-np-1,np-npmin)=2*Mtmp(2);
-			d3G0(Nfit-np-1,np-npmin)=6*Mtmp(3);
+			dG0(Nfit-np-1,np-npmin)=Mtmp(1)/tau(Nfit-1);
+			d2G0(Nfit-np-1,np-npmin)=2*Mtmp(2)/pow(tau(Nfit-1),2);
+			d3G0(Nfit-np-1,np-npmin)=6*Mtmp(3)/pow(tau(Nfit-1),3);
 			
 			Gchi2tmp=flipud(Gtau.rows(Ntau-Nfit+1,Ntau));
 			CG=flipud(fliplr(Ctau_all.submat(Ntau-Nfit+1,Ntau-Nfit+1,Ntau,Ntau)));
@@ -9623,9 +9623,9 @@ bool OmegaMaxEnt_data::compute_dG_dtau()
 			BM=(X.t())*invCG*Gchi2tmp;
 			Mtmp=solve(AM,BM);
 			Gb(Nfit-np-1,np-npmin)=Mtmp(0);
-			dGb(Nfit-np-1,np-npmin)=-Mtmp(1);
-			d2Gb(Nfit-np-1,np-npmin)=2*Mtmp(2);
-			d3Gb(Nfit-np-1,np-npmin)=-6*Mtmp(3);
+			dGb(Nfit-np-1,np-npmin)=-Mtmp(1)/tau(Nfit-1);
+			d2Gb(Nfit-np-1,np-npmin)=2*Mtmp(2)/pow(tau(Nfit-1),2);
+			d3Gb(Nfit-np-1,np-npmin)=-6*Mtmp(3)/pow(tau(Nfit-1),3);
 		}
 	}
 	
