@@ -1499,8 +1499,15 @@ int OmegaMaxEnt_data::loop_run()
 									ind_fig++;
 								}
 								
+								double Lt_dw_min=1;
+								
+								vec Dw=w.rows(1,Nw-1)-w.rows(0,Nw-2);
+								double dw_min=Dw.min();
+								
 								xlims[0]=0;
-								xlims[1]=t_re(t_re.n_rows-1)/5;
+								xlims[1]=Lt_dw_min/dw_min;
+								
+						//		xlims[1]=t_re(t_re.n_rows-1)/5;
 								
 								vec Gr_t_re=real(G_t_re);
 								vec Gi_t_re=imag(G_t_re);
@@ -1748,6 +1755,7 @@ int OmegaMaxEnt_data::loop_run()
 		}
 	
 	} while (((continue_exec=='y' || continue_exec=='\n') && interactive_mode) || (!interactive_mode && N_params_noise && !error_provided && ind_noise<N_params_noise));
+	
 	
 	/*
 	int j;
@@ -3380,7 +3388,7 @@ void OmegaMaxEnt_data::compute_Re_chi_omega(vec Ap)
 	
 	Gr_Re_w.rows(j0-NwKK+1,j0+NwKK-1)=Gr_Re_w_KK;
 	
-	if (w_out(0)!=w_dense(0) || w_out(Nw_out-1)!=w_dense(Nw_dense-1) || Nw_out==Nw_dense)
+	if (Nw_out!=Nw_dense || w_out(0)!=w_dense(0) || w_out(Nw_out-1)!=w_dense(Nw_dense-1))
 	{
 		coeffs.zeros(4*(Nw_dense-1));
 		spline_coeffs(w_dense.memptr(), Gi_Re_w.memptr(), Nw_dense, coeffs.memptr());
@@ -7025,7 +7033,6 @@ bool OmegaMaxEnt_data::set_covar_chi_omega_n()
 	
 	return true;
 }
-
 
 bool OmegaMaxEnt_data::compute_moments_tau_bosons()
 {
@@ -11189,7 +11196,7 @@ double OmegaMaxEnt_data::S_i(double u, double c[])
 
 void OmegaMaxEnt_data::minimize()
 {
-	double tol_int_dA2=1e-3;
+	double tol_int_dA2=1e-2;
 	char alpha_output[100], file_name[200];
 	char alpha_output_format[]="%d \t alpha: % 1.4e,  Q: % 1.4e,  S: % 1.4e,  chi2: % 1.4e\n";
 	double mean_int_dA_prec, mean_int_dA_prec2, A1min, chi2prec, Q, S;
@@ -11219,6 +11226,14 @@ void OmegaMaxEnt_data::minimize()
 	double rADchange=realmin;
 	vec Achange=rADchange*default_model;
 	vec Achange_w=rADchange*default_model%dwS/(2*PI);
+	
+	/*
+	if (!svd(U,sK,V,KG_V,"std"))
+	{
+		cout<<"minimize(): svd error\n";
+		return;
+	}
+	*/
 	
 	if (!svd(U,sK,V,KG_V))
 	{
@@ -11293,6 +11308,13 @@ void OmegaMaxEnt_data::minimize()
 				return;
 			}
 		}
+	/*
+		if (!svd(U,sK,V,KGMj,"std"))
+		{
+			cout<<"minimize(): svd error\n";
+			return;
+		}
+	 */
 		
 		B2=V.t()*(P*B);
 		sK2.zeros();
@@ -11337,6 +11359,14 @@ void OmegaMaxEnt_data::minimize()
 			P=diagmat(Pd);
 			
 			KGMj=KGM*P;
+			
+			/*
+			if (!svd(U,sK,V,KGMj,"std"))
+			{
+				cout<<"minimize(): svd error\n";
+				return;
+			}
+			*/
 			
 			if (!svd(U,sK,V,KGMj))
 			{
@@ -11390,6 +11420,10 @@ void OmegaMaxEnt_data::minimize()
 				dA1_prec=dA1;
 				A1=A1+dA1;
 				A1min=min(A1-Amin);
+			}
+			else
+			{
+				mean_int_dA(0)=mean_int_dA_prec;
 			}
 		/*
 			else if (mean_int_dA(0)<mean_int_dA_prec2)
@@ -11485,13 +11519,17 @@ void OmegaMaxEnt_data::minimize()
 //				Pw=diagmat(Pdw);
 //				KGMj=KGMw*Pw;
 				
-				if (!svd(U,sK,V,KGMj))
+				if (!svd(U,sK,V,KGMj,"std"))
 				{
+					cout<<"minimize(): svd error\n";
+					return;
+				/*
 					if (!svd(U,sK,V,KGMj,"std"))
 					{
 						cout<<"minimize(): svd error\n";
 						return;
 					}
+				 */
 				}
 				
 				sK2.zeros();

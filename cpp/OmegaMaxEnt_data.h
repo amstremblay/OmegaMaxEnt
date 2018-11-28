@@ -249,8 +249,8 @@ static map<Other_params_fl_name, double> Other_params_fl_default_values( {
     {TOL_M2,0.05},
     {TOL_M3,0.1},
     {DEFAULT_ERROR_G,1.0e-4},
-    {ERR_NORM,1.0e-3},
-    {DEFAULT_ERROR_M,0.01},
+    {ERR_NORM,1.0e-4},
+    {DEFAULT_ERROR_M,0.001},
     {TOL_MEAN_C1,0.002},
     {TOL_STD_C1,0.002},
     {TOL_RDW,1.0e-10},
@@ -285,7 +285,7 @@ static map<Other_params_fl_name, double> Other_params_fl_default_values( {
 	{R_SW_G_RE_W_RANGE,10},
 	{R_DW_MIN_DW_DENSE,5},
 	{R_WKK_SW,0.01},
-	{R_SV_MIN,1e-12}} );
+	{R_SV_MIN,1e-10}} );
 
 static const char *OmegaMaxEnt_notice=R"(
 OmegaMaxEnt Copyright (C) 2015 Dominic Bergeron (dominic.bergeron@usherbrooke.ca)
