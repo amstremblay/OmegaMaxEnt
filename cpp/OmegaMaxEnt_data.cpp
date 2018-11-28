@@ -9898,8 +9898,6 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	while (p<=np && sK(p)/sK(0)>R_sv_min) p++;
 	Nfitmax=p;
 	
-//	cout<<"Nfitmax: "<<Nfitmax<<endl;
-	
 	mat CG, invCG, AM;
 	vec Gchi2tmp, BM, Mtmp;
 	npmin=3;
