@@ -7039,6 +7039,8 @@ bool OmegaMaxEnt_data::compute_moments_tau_bosons()
 	cout<<"COMPUTING MOMENTS\n";
 	
 	int Nfitmax_max=50;
+	
+	int Nfitmax1=16;
 	int Nv=1;
 	int NvN=1;
 	int npmin=2;
@@ -7046,7 +7048,7 @@ bool OmegaMaxEnt_data::compute_moments_tau_bosons()
 	int Np=npmax-npmin+1;
 	int DNfitmin=0;
 	int DNfitmax=Ntau-npmax-1;
-	if (16-npmax-1<DNfitmax) DNfitmax=16-npmax-1;
+	if (Nfitmax1-npmax-1<DNfitmax) DNfitmax=Nfitmax1-npmax-1;
 	int NDN=DNfitmax-DNfitmin+1;
 	
 	mat M0tmp=zeros<mat>(NDN,Np);
@@ -9809,6 +9811,7 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	
 	int Nfitmax_max=50;
 	
+	int Nfitmax1=16;
 	int Nv=1;
 	int NvN=1;
 	int npmin=2;
@@ -9816,8 +9819,11 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	int Np=npmax-npmin+1;
 	int DNfitmin=0;
 	int DNfitmax=Ntau-npmax-1;
-	if (16-npmax-1<DNfitmax) DNfitmax=16-npmax-1;
+	if (Nfitmax1-npmax-1<DNfitmax) DNfitmax=Nfitmax1-npmax-1;
 	int NDN=DNfitmax-DNfitmin+1;
+	
+//	cout<<"NDN: "<<NDN<<endl;
+//	cout<<"Np: "<<Np<<endl;
 	
 	mat M0tmp=zeros<mat>(NDN,Np);
 	mat M1tmp=zeros<mat>(NDN,Np);
@@ -9868,6 +9874,10 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	double M1_NP_tmp=M1m(jvmin,lvmin);
 	varM2.min(jvmin,lvmin);
 	double M2_NP_tmp=M2m(jvmin,lvmin);
+	
+//	cout<<"M0_NP_tmp: "<<M0_NP_tmp<<endl;
+//	cout<<"M1_NP_tmp: "<<M1_NP_tmp<<endl;
+//	cout<<"M2_NP_tmp: "<<M2_NP_tmp<<endl;
 	
 	double Wtmp;
 	if (M2_NP_tmp/M0_NP_tmp > pow(M1_NP_tmp/M0_NP_tmp,2))
@@ -23394,19 +23404,28 @@ bool polyfit(vec x, vec y, int D, double x0, vec &cfs)
 	int j;
 	
 	vec Dx=x-x0;
-	for (j=0; j<D-1; j++)
+	double Dxmax=Dx.max();
+	
+	for (j=0; j<D; j++)
 	{
-		X.col(j)=pow(Dx,D-j);
+		X.col(j)=pow(Dx/Dxmax,D-j);
 	}
-	X.col(D-1)=Dx;
 	X.col(D)=ones<vec>(N);
 	
 	mat A=X.t()*X;
 	vec B=X.t()*y;
 	
-	cfs=solve(A,B);
+	bool s=solve(cfs,A,B);
 	
-	return cfs.is_finite();
+	for (j=0; j<D; j++)
+	{
+		cfs(j)=cfs(j)/pow(Dxmax,D-j);
+	}
+	
+//	cfs=solve(A,B);
+//	return cfs.is_finite();
+	
+	return s;
 }
 
 void pascal(int n, imat &P)
