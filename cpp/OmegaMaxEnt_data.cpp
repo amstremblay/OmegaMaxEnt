@@ -9925,11 +9925,15 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	mat M2b=zeros<mat>(NNfit,NNfit);
 	mat M3b=zeros<mat>(NNfit,NNfit);
 	
+	vec Np_Nfit(NNfit);
+	
 	for (Nfit=Nfitmin; Nfit<=Nfitmax; Nfit++)
 	{
 		pmax=Nfit-1;
 		for (np=npmin; np<=pmax; np++)
 		{
+		//	Np_Nfit(Nfit-Nfitmin)=np-npmin+1;
+			
 			X.zeros(Nfit,np+1);
 			for (p=0; p<=np; p++)
 				X.col(p)=pow(tau.rows(0,Nfit-1)/tau(Nfit-1),p);
@@ -9941,7 +9945,7 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 			AM=(X.t())*invCG*X;
 			BM=(X.t())*invCG*Gchi2tmp;
 			Mtmp=solve(AM,BM);
-		//	if (!solve(Mtmp,AM,BM))
+		//	if (!solve(Mtmp,AM,BM)) continue;
 			M0b(Nfit-np-1,np-npmin)=-Mtmp(0);
 			M2b(Nfit-np-1,np-npmin)=-2*Mtmp(2)/pow(tau(Nfit-1),2);
 		//	M2b(Nfit-np-1,np-npmin)=-2*Mtmp(2);
@@ -9953,7 +9957,7 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 		 	AM=(X.t())*invCG*X;
 			BM=(X.t())*invCG*Gchi2tmp;
 			Mtmp=solve(AM,BM);
-		//	if (!solve(Mtmp,AM,BM))
+		//	if (!solve(Mtmp,AM,BM)) continue;
 		//	M1b(Nfit-np-1,np-npmin)=Mtmp(1);
 		//	M3b(Nfit-np-1,np-npmin)=6*Mtmp(3);
 			M1b(Nfit-np-1,np-npmin)=Mtmp(1)/tau(Nfit-1);

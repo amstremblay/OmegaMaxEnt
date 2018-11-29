@@ -86,7 +86,7 @@ class generique
 //@}
 	
 	//! compute the solution to the linear system of equations Ax=B using LU decomposition (uses gsl functions). vec is the vector type of the armadillo library
-	vec solve_LU(mat &A, vec &B);
+	int solve_LU(vec &X, mat &A, vec &B);
 	
 	//! compute the coefficients of a cubic spline using linear combinations of the first and second derivatives as the two mandatory additionnal constraints to the spline. x0 is the position vector, F the function vector, LC contains the two right-hand side values of the constraints, coeffs_LC(0) and coeffs_LC(1) are the coefficients of the first derivatives at the left and right boundary and coeffs_LC(2) and coeffs_LC(3) are the coefficients of the second derivatives at the same boundaries.
 	void spline_coeffs_LC(vec x0, vec F, vec LC, vec coeffs_LC, vec &coeffs);

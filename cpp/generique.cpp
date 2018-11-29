@@ -66,7 +66,7 @@ double generique::simpson_integ(vec f, double dx)
 	return sum(0)*dx/3;
 }
 
-vec generique::solve_LU(mat &A, vec &B)
+int generique::solve_LU(vec &X, mat &A, vec &B)
 {
 	int N=B.n_rows;
 	int j, sgn;
@@ -76,13 +76,13 @@ vec generique::solve_LU(mat &A, vec &B)
 	gsl_vector *xg = gsl_vector_alloc (N);
 	gsl_permutation * pg = gsl_permutation_alloc (N);
 	gsl_linalg_LU_decomp (&Ag.matrix, pg, &sgn);
-	gsl_linalg_LU_solve (&Ag.matrix, pg, &Bg.vector, xg);
-	vec X=zeros<vec>(N);
+	int rv=gsl_linalg_LU_solve (&Ag.matrix, pg, &Bg.vector, xg);
+	X.zeros(N);
 	for (j=0; j<N; j++) X(j)=xg->data[j];
 	gsl_permutation_free (pg);
 	gsl_vector_free (xg);
 	
-	return X;
+	return rv;
 }
 
 
