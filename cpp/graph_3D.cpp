@@ -25,8 +25,8 @@ FILE *graph_3D::plot_pipe=NULL;
 FILE *graph_3D::file_pipe=NULL;
 bool graph_3D::display_figures=true;
 bool graph_3D::print_to_file=true;
-int graph_3D::ind_file=0;
-int graph_3D::fig_ind_max=0;
+int graph_3D::file_ind=0;
+int graph_3D::fig_ind=1;
 char graph_3D::program_name[100];
 char graph_3D::config_command[200];
 char graph_3D::fig_command_format[100];
@@ -57,19 +57,14 @@ graph_3D::graph_3D(int fig_ind_p)
 {
     if (fig_ind_p>0)
         fig_ind=fig_ind_p;
-    else
-    {
-        fig_ind_max++;
-        fig_ind=fig_ind_max;
-    }
 	
 	if (figs_ind_file)
 	{
 		figs_ind_file<<setiosflags(ios::left);
 	}
     
-    labels_fontsize=20;
-	title_fontsize=20;
+    labels_fontsize=16;
+	title_fontsize=18;
     xlims[0]=0;
     xlims[1]=0;
     ylims[0]=0;
@@ -123,11 +118,11 @@ void graph_3D::open_pipe()
 	
 	if (print_to_file && !file_pipe)
 	{
-		sprintf(file_name,file_name_format,ind_file);
+		sprintf(file_name,file_name_format,file_ind);
 		file_pipe=fopen(file_name,"w");
 		if (figs_ind_file)
 		{
-			figs_ind_file<<setw(10)<<ind_file;
+			figs_ind_file<<setw(10)<<file_ind;
 		}
 		fputs(config_command,file_pipe);
 	}
@@ -196,12 +191,14 @@ void graph_3D::show_figures()
 		fflush(file_pipe);
 	}
 
+	file_ind++;
+	
 	close_pipe();
 	
 	if (!print_to_file)
 	{
 		char tmp_file_name[100];
-		for (int j=0; j<ind_file; ++j)
+		for (int j=0; j<file_ind; ++j)
 		{
 			sprintf(tmp_file_name,x_file_name_format,j);
 			remove(tmp_file_name);
@@ -210,7 +207,7 @@ void graph_3D::show_figures()
 			sprintf(tmp_file_name,z_file_name_format,j);
 			remove(tmp_file_name);
 		}
-		ind_file=0;
+		file_ind=0;
 	}
 }
 
@@ -273,9 +270,6 @@ void graph_3D::plot_surface(map<string,string> extra_options, int fig_ind_p)
     if (fig_ind_p>0)
         fig_ind=fig_ind_p;
     
-    if (fig_ind>fig_ind_max)
-        fig_ind_max=fig_ind;
-    
     sprintf(fig_command,fig_command_format,fig_ind);
 	
 	open_pipe();
@@ -286,7 +280,7 @@ void graph_3D::plot_surface(map<string,string> extra_options, int fig_ind_p)
 		return;
 	}
 
-    int j=ind_file;
+    int j=fig_ind;
 	
 	sprintf(tmp_file_name,x_file_name_format,j);
 	x.save(tmp_file_name,raw_ascii);
@@ -364,4 +358,6 @@ void graph_3D::plot_surface(map<string,string> extra_options, int fig_ind_p)
 
     if (plot_pipe) fflush(plot_pipe);
 	if (file_pipe) fflush(file_pipe);
+	
+	fig_ind++;
 }

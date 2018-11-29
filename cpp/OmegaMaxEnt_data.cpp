@@ -103,6 +103,8 @@ OmegaMaxEnt_data::~OmegaMaxEnt_data()
 	if (time_other_params_file) delete time_other_params_file;
 	graph_2D::figs_ind_file<<'\n';
 	graph_2D::figs_ind_file.close();
+	graph_3D::figs_ind_file<<'\n';
+	graph_3D::figs_ind_file.close();
 }
 
 int OmegaMaxEnt_data::loop_run()
@@ -9865,17 +9867,25 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	
 	Np=npmax-npmin+1;
 	
-/*
  	vec np_v=linspace<vec>(npmin,npmax,Np);
  	vec DNfit_v=linspace<vec>(DNfitmin,DNfitmax,NDN);
  
-	graph_3D g1;
-	g1.add_data(np_v, DNfit_v, M1tmp);
-	g1.set_axes_labels("$d-d_{min}$", "$N_{fit}-p$", "$M_1$");
-	options_list opts={};
-	g1.plot_surface({},0);
+	graph_3D g1, g2, g3;
+	
+	g1.add_data(np_v, DNfit_v, M0tmp);
+	g1.set_axes_labels("$d-d_{min}$", "$N_{fit}-p$", "$M_0$");
+	g1.plot_surface();
+	
+	g2.add_data(np_v, DNfit_v, M1tmp);
+	g2.set_axes_labels("$d-d_{min}$", "$N_{fit}-p$", "$M_1$");
+	g2.plot_surface();
+	
+	g3.add_data(np_v, DNfit_v, M2tmp);
+	g3.set_axes_labels("$d-d_{min}$", "$N_{fit}-p$", "$M_2$");
+	g3.plot_surface();
+	
 	graph_3D::show_figures();
-*/
+
 	mat M0m=zeros<mat>(NDN-2*NvN,Np-2*Nv);
 	mat M1m=zeros<mat>(NDN-2*NvN,Np-2*Nv);
 	mat M2m=zeros<mat>(NDN-2*NvN,Np-2*Nv);

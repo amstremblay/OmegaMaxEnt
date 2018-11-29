@@ -45,8 +45,8 @@ extern "C++"
         ~graph_3D();
         
 		void add_data(vec x, vec y, mat Z);
-		void plot_surface(vec x, vec y, mat Z, map<string,string> extra_options, int fig_ind_p);
-		void plot_surface(map<string,string> extra_options, int fig_ind_p=0);
+		void plot_surface(vec x, vec y, mat Z, map<string,string> extra_options={}, int fig_ind_p=0);
+		void plot_surface(map<string,string> extra_options={}, int fig_ind_p=0);
 		void set_axes_lims(double *xlims_par, double *ylims_par, double *zlims_par);
         void set_axes_labels(const char*, const char*, const char*);
 		void add_title(const char *ttl);
@@ -60,15 +60,15 @@ extern "C++"
 		static void close_pipe();
         static void show_figures();
 		static void show_commands(bool show_comm){show_command=show_comm;}
-		static void reset_figs_ind_file(){if (figs_ind_file) figs_ind_file.close(); figs_ind_file.open(surf_figs_ind_file_name); ind_file=0;}
+		static void reset_figs_ind_file(){if (figs_ind_file) figs_ind_file.close(); figs_ind_file.open(surf_figs_ind_file_name); file_ind=0;}
 		
 		static char plot_command_format[500];
         static FILE *plot_pipe;
 		static FILE *file_pipe;
 		static bool display_figures;
 		static bool print_to_file;
-        static int ind_file;
-        static int fig_ind_max;
+        static int file_ind;
+        static int fig_ind;
         static char program_name[100];
         static char config_command[200];
         static char fig_command_format[100];
@@ -94,9 +94,6 @@ extern "C++"
 		static ofstream figs_ind_file;
         
     private:
-        void plot_surface(char* =NULL, int=0);
-        
-//        char fig_name[100];
         char title[400];
         char xlabel[100];
         char ylabel[100];
@@ -108,8 +105,6 @@ extern "C++"
 		
 		vec x,y;
 		mat Z;
-		
-		int fig_ind;
     };
     
 }
