@@ -35,6 +35,7 @@
 #include <string.h>
 #include <ctime>
 #include "graph_2D.h"
+#include "graph_3D.h"
 #include "generique.h"
 #include "OmegaMaxEnt_license.h"
 

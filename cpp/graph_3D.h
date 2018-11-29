@@ -1,9 +1,9 @@
 /*
- file graph_2D.h
- definition of class "graph_2D" that uses pyplot from the Python library Matplotlib (or GNUPLOT but in a rudimentary way) to plot 1D functions.
+ file graph_3D.h
+ definition of class "graph_3D" that uses pyplot from the Python library Matplotlib (or GNUPLOT but in a rudimentary way) to plot 2D functions.
  It is part of the program OmegaMaxEnt (other source files: graph_2D.cpp, OmegaMaxEnt_main.cpp, OmegaMaxEnt_data.h, OmegaMaxEnt_data.cpp, generique.h, generique.cpp)
  
- Copyright (C) 2015 Dominic Bergeron (dominic.bergeron@usherbrooke.ca)
+ Copyright (C) 2018 Dominic Bergeron (dominic.bergeron@usherbrooke.ca)
  
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -20,37 +20,35 @@
  */
 
 
-#ifndef GRAPH_2D_H
-#define GRAPH_2D_H
+#ifndef GRAPH_3D_H
+#define GRAPH_3D_H
 
 #include "includeDef.h"
-#include <list>
-#include <array>
-#include <vector>
+//#include <list>
+//#include <array>
+//#include <vector>
 #include <string>
+#include <map>
 
-static string figs_ind_file_name("figs_ind.dat");
+using namespace arma;
+
+static string surf_figs_ind_file_name("surf_figs_ind.dat");
 
 extern "C++"
 {
-    typedef array<double, 2> point;
-    
-    enum plot_prog {GNUPLOT, PYPLOT};
-    
-    class graph_2D
+	typedef map<string,string> options_list;
+	
+    class graph_3D
     {
     public:
-        graph_2D(plot_prog =PYPLOT, int =0);
-        ~graph_2D();
+        graph_3D(int =0);
+        ~graph_3D();
         
-        void add_data(double*, double*, int);
-        void print_data();
-        void curve_plot(char* =NULL, int=0);
-        void curve_plot(double*, double*, int, char* =NULL, int=0);
-        void set_axes_lims(double*, double*);
-        void set_axes_labels(const char*, const char*);
-        void add_to_legend(const char*);
-		void add_attribute(const char *attr);
+		void add_data(vec x, vec y, mat Z);
+		void plot_surface(vec x, vec y, mat Z, map<string,string> extra_options, int fig_ind_p);
+		void plot_surface(map<string,string> extra_options, int fig_ind_p=0);
+		void set_axes_lims(double *xlims_par, double *ylims_par, double *zlims_par);
+        void set_axes_labels(const char*, const char*, const char*);
 		void add_title(const char *ttl);
         
         double labels_fontsize;
@@ -61,10 +59,10 @@ extern "C++"
 		static void open_pipe();
 		static void close_pipe();
         static void show_figures();
-        static void close_figures();
 		static void show_commands(bool show_comm){show_command=show_comm;}
-		static void reset_figs_ind_file(){if (figs_ind_file) figs_ind_file.close(); figs_ind_file.open(figs_ind_file_name); ind_file=0;}
+		static void reset_figs_ind_file(){if (figs_ind_file) figs_ind_file.close(); figs_ind_file.open(surf_figs_ind_file_name); ind_file=0;}
 		
+		static char plot_command_format[500];
         static FILE *plot_pipe;
 		static FILE *file_pipe;
 		static bool display_figures;
@@ -74,43 +72,42 @@ extern "C++"
         static char program_name[100];
         static char config_command[200];
         static char fig_command_format[100];
-        static char plot_function[100];
-        static char load_data_command_format[100];
-        static char plot_data_command_format[100];
-        static char plot_data_command_separator[100];
+        static char load_x_command_format[100];
+		static char load_y_command_format[100];
+		static char load_z_command_format[100];
+		static char mesh_command[100];
 		static char title_command_format[100];
         static char xlabel_command_format[100];
         static char ylabel_command_format[100];
+		static char zlabel_command_format[100];
         static char xlims_command_format[100];
         static char ylims_command_format[100];
-        static char legend_function[100];
-        static char plot_closing_command[100];
+		static char zlims_command_format[100];
         static char show_figures_command[100];
-        static char close_figures_command[100];
-        static char close_figures_command_format[100];
-        static char tmp_file_name_format[100];
+		static char x_file_name_format[100];
+		static char y_file_name_format[100];
+		static char z_file_name_format[100];
 		static bool show_command;
-		static plot_prog plotting_program;
 		static char file_name[100];
 		static char file_name_format[100];
 		static char figs_dir[100];
 		static ofstream figs_ind_file;
         
     private:
-        void plot_with_pyplot(char* =NULL, int=0);
-        void plot_with_gnuplot(char* =NULL, int=0);
+        void plot_surface(char* =NULL, int=0);
         
 //        char fig_name[100];
         char title[400];
         char xlabel[100];
         char ylabel[100];
+		char zlabel[100];
 
         double xlims[2];
         double ylims[2];
-        
-        list< vector<point> > list_curves;
-        list< string > curves_names;
-		list< string > curves_attributes;
+		double zlims[2];
+		
+		vec x,y;
+		mat Z;
 		
 		int fig_ind;
     };

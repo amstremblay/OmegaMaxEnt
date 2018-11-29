@@ -40,7 +40,7 @@ extern "C"
 	void dgbsv_(int *N, int *KL, int *KU, int *NRHS, double *AB, int *LDAB, int *IPIV, double *B, int *LDB, int *INFO );
 }
 
-bool polyfit(vec x, vec y, int D, double x0, vec &cfs);
+bool polyfit(vec &cfs, vec x, vec y, int D);
 bool polyval(double x0, vec cfs, vec x, vec &y);
 void remove_spaces_front(string &str);
 void remove_spaces_back(string &str);
@@ -162,6 +162,7 @@ int OmegaMaxEnt_data::loop_run()
 		read_other_params=false;
 		
 		graph_2D::reset_figs_ind_file();
+		graph_3D::reset_figs_ind_file();
 
 		stat(input_params_file_name.c_str(),&file_stat);
 		if (time_params_file)
@@ -782,8 +783,9 @@ int OmegaMaxEnt_data::loop_run()
 						if (xc==xc && yc==yc) dlchi2_lalpha(j-ind_curv_start)=(xc-x1)/(y1-yc);
 						else
 						{
-							
-							if (polyfit(fs*lalpha.rows(jmin,jmax), lchi2.rows(jmin,jmax), 1, 0.5*fs*(lalpha(jmin)+lalpha(jmax)), cfs_poly))
+							vec lalpha_tmp=fs*(lalpha.rows(jmin,jmax)-0.5*(lalpha(jmin)+lalpha(jmax)));
+//							if (polyfit(fs*lalpha.rows(jmin,jmax), lchi2.rows(jmin,jmax), 1, 0.5*fs*(lalpha(jmin)+lalpha(jmax)), cfs_poly))
+							if (polyfit(cfs_poly, lalpha_tmp, lchi2.rows(jmin,jmax), 1))
 								dlchi2_lalpha(j-ind_curv_start)=cfs_poly(0);
 							else
 								dlchi2_lalpha(j-ind_curv_start)=0;
@@ -7063,11 +7065,13 @@ bool OmegaMaxEnt_data::compute_moments_tau_bosons()
 		{
 			Nfit=np+1+DNfit;
 			Gtmp=Gtau.rows(0,Nfit-1)+flipud(Gtau.rows(Ntau-Nfit+1,Ntau));
-			polyfit(tau.rows(0,Nfit-1),Gtmp,np,0,pp);
+		//	polyfit(tau.rows(0,Nfit-1),Gtmp,np,0,pp);
+			polyfit(pp,tau.rows(0,Nfit-1),Gtmp,np);
 			M1tmp(DNfit-DNfitmin,np-npmin)=pp(np-1);
 			
 			Gtmp=Gtau.rows(0,Nfit-1)-flipud(Gtau.rows(Ntau-Nfit+1,Ntau));
-			polyfit(tau.rows(0,Nfit-1),Gtmp,np,0,pp);
+		//	polyfit(tau.rows(0,Nfit-1),Gtmp,np,0,pp);
+			polyfit(pp,tau.rows(0,Nfit-1),Gtmp,np);
 			M0tmp(DNfit-DNfitmin,np-npmin)=-pp(np);
 			M2tmp(DNfit-DNfitmin,np-npmin)=-2*pp(np-2);
 		}
@@ -9809,21 +9813,25 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	//cout<<"COMPUTING MOMENTS with compute_moments_tau_fermions()\n";
 	cout<<"COMPUTING MOMENTS\n";
 	
+	int sgn=1;
+	if (boson) sgn=-1;
+	
 	int Nfitmax_max=50;
 	
-	int Nfitmax1=16;
+	int Nfitmax1=50;
 	int Nv=1;
 	int NvN=1;
 	int npmin=2;
-	int npmax=5;
+	int npmax=10;
 	int Np=npmax-npmin+1;
 	int DNfitmin=0;
 	int DNfitmax=Ntau-npmax-1;
 	if (Nfitmax1-npmax-1<DNfitmax) DNfitmax=Nfitmax1-npmax-1;
 	int NDN=DNfitmax-DNfitmin+1;
 	
-//	cout<<"NDN: "<<NDN<<endl;
-//	cout<<"Np: "<<Np<<endl;
+	cout<<"npmax: "<<npmax<<endl;
+	cout<<"Np: "<<Np<<endl;
+	cout<<"NDN: "<<NDN<<endl;
 	
 	mat M0tmp=zeros<mat>(NDN,Np);
 	mat M1tmp=zeros<mat>(NDN,Np);
@@ -9836,17 +9844,38 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 		for (np=npmin; np<=npmax; np++)
 		{
 			Nfit=np+1+DNfit;
-			Gtmp=Gtau.rows(0,Nfit-1)+flipud(Gtau.rows(Ntau-Nfit+1,Ntau));
-			polyfit(tau.rows(0,Nfit-1),Gtmp,np,0,pp);
+			Gtmp=Gtau.rows(0,Nfit-1)+sgn*flipud(Gtau.rows(Ntau-Nfit+1,Ntau));
+			if (!polyfit(pp,tau.rows(0,Nfit-1),Gtmp,np))
+			{
+				npmax=np-1;
+				continue;
+			}
 			M0tmp(DNfit-DNfitmin,np-npmin)=-pp(np);
 			M2tmp(DNfit-DNfitmin,np-npmin)=-2*pp(np-2);
 			
-			Gtmp=Gtau.rows(0,Nfit-1)-flipud(Gtau.rows(Ntau-Nfit+1,Ntau));
-			polyfit(tau.rows(0,Nfit-1),Gtmp,np,0,pp);
+			Gtmp=Gtau.rows(0,Nfit-1)-sgn*flipud(Gtau.rows(Ntau-Nfit+1,Ntau));
+			if (!polyfit(pp,tau.rows(0,Nfit-1),Gtmp,np))
+			{
+				npmax=np-1;
+				continue;
+			}
 			M1tmp(DNfit-DNfitmin,np-npmin)=pp(np-1);
 		}
 	}
 	
+	Np=npmax-npmin+1;
+	
+/*
+ 	vec np_v=linspace<vec>(npmin,npmax,Np);
+ 	vec DNfit_v=linspace<vec>(DNfitmin,DNfitmax,NDN);
+ 
+	graph_3D g1;
+	g1.add_data(np_v, DNfit_v, M1tmp);
+	g1.set_axes_labels("$d-d_{min}$", "$N_{fit}-p$", "$M_1$");
+	options_list opts={};
+	g1.plot_surface({},0);
+	graph_3D::show_figures();
+*/
 	mat M0m=zeros<mat>(NDN-2*NvN,Np-2*Nv);
 	mat M1m=zeros<mat>(NDN-2*NvN,Np-2*Nv);
 	mat M2m=zeros<mat>(NDN-2*NvN,Np-2*Nv);
@@ -9854,16 +9883,17 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	mat varM1=zeros<mat>(NDN-2*NvN,Np-2*Nv);
 	mat varM2=zeros<mat>(NDN-2*NvN,Np-2*Nv);
 	int j, l;
+	int N_av=(2*Nv+1)*(2*NvN+1);
 	for (l=Nv; l<Np-Nv; l++)
 	{
 		for (j=NvN; j<NDN-NvN; j++)
 		{
-			M0m(j-NvN,l-Nv)=accu(M0tmp.submat(j-NvN,l-Nv,j+NvN,l+Nv))/((2*Nv+1)*(2*NvN+1));
-			M1m(j-NvN,l-Nv)=accu(M1tmp.submat(j-NvN,l-Nv,j+NvN,l+Nv))/((2*Nv+1)*(2*NvN+1));
-			M2m(j-NvN,l-Nv)=accu(M2tmp.submat(j-NvN,l-Nv,j+NvN,l+Nv))/((2*Nv+1)*(2*NvN+1));
-			varM0(j-NvN,l-Nv)=accu(pow(M0tmp.submat(j-NvN,l-Nv,j+NvN,l+Nv)-M0m(j-NvN,l-Nv),2))/((2*Nv+1)*(2*NvN+1));
-			varM1(j-NvN,l-Nv)=accu(pow(M1tmp.submat(j-NvN,l-Nv,j+NvN,l+Nv)-M1m(j-NvN,l-Nv),2))/((2*Nv+1)*(2*NvN+1));
-			varM2(j-NvN,l-Nv)=accu(pow(M2tmp.submat(j-NvN,l-Nv,j+NvN,l+Nv)-M2m(j-NvN,l-Nv),2))/((2*Nv+1)*(2*NvN+1));
+			M0m(j-NvN,l-Nv)=accu(M0tmp.submat(j-NvN,l-Nv,j+NvN,l+Nv))/N_av;
+			M1m(j-NvN,l-Nv)=accu(M1tmp.submat(j-NvN,l-Nv,j+NvN,l+Nv))/N_av;
+			M2m(j-NvN,l-Nv)=accu(M2tmp.submat(j-NvN,l-Nv,j+NvN,l+Nv))/N_av;
+			varM0(j-NvN,l-Nv)=accu(pow(M0tmp.submat(j-NvN,l-Nv,j+NvN,l+Nv)-M0m(j-NvN,l-Nv),2))/N_av;
+			varM1(j-NvN,l-Nv)=accu(pow(M1tmp.submat(j-NvN,l-Nv,j+NvN,l+Nv)-M1m(j-NvN,l-Nv),2))/N_av;
+			varM2(j-NvN,l-Nv)=accu(pow(M2tmp.submat(j-NvN,l-Nv,j+NvN,l+Nv)-M2m(j-NvN,l-Nv),2))/N_av;
 		}
 	}
 	
@@ -9875,9 +9905,473 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	varM2.min(jvmin,lvmin);
 	double M2_NP_tmp=M2m(jvmin,lvmin);
 	
-//	cout<<"M0_NP_tmp: "<<M0_NP_tmp<<endl;
-//	cout<<"M1_NP_tmp: "<<M1_NP_tmp<<endl;
-//	cout<<"M2_NP_tmp: "<<M2_NP_tmp<<endl;
+	cout<<"M0_NP_tmp: "<<M0_NP_tmp<<endl;
+	cout<<"M1_NP_tmp: "<<M1_NP_tmp<<endl;
+	cout<<"M2_NP_tmp: "<<M2_NP_tmp<<endl;
+	
+	double Wtmp;
+	if (M2_NP_tmp/M0_NP_tmp > pow(M1_NP_tmp/M0_NP_tmp,2))
+		Wtmp=sqrt(M2_NP_tmp/M0_NP_tmp-pow(M1_NP_tmp/M0_NP_tmp,2));
+	else
+		Wtmp=abs(M1_NP_tmp/M0_NP_tmp);
+	
+	int Nfitmax=ceil(FNfitTauW*Ntau*tem/(abs(M1_NP_tmp/M0_NP_tmp)+Wtmp));
+	if (Nfitmax>Ntau) Nfitmax=Ntau/2;
+	if (Nfitmax>Nfitmax_max) Nfitmax=Nfitmax_max;
+	
+	mat X;
+	int p, pmax;
+	
+	Nfit=Nfitmax;
+	np=Nfit-1;
+	X.zeros(Nfit,np+1);
+	for (p=0; p<=np; p++)
+		X.col(p)=pow(tau.rows(0,Nfit-1)/tau(Nfit-1),p);
+	
+	mat U, V;
+	vec sK;
+	svd(U,sK,V,X,"std");
+	
+	//	cout<<"sK(np)/sK(0): "<<sK(np)/sK(0)<<endl;
+	
+	p=0;
+	while (p<=np && sK(p)/sK(0)>R_sv_min) p++;
+	Nfitmax=p;
+	
+	mat CG, invCG, AM;
+	vec Gchi2tmp, BM, Mtmp;
+	npmin=3;
+	int Nfitmin=npmin+1;
+	int NNfit=Nfitmax-Nfitmin+1;
+	
+	if (NNfit<5)
+	{
+		cout<<"compute_moments_tau_fermions(): unable to compute the moments from G(tau). The imaginary time step can be either too small or too large. You can either change the step, provide the first moment, or increase parameter R_sv_min in file \"OmegaMaxEnt_other_params.dat\".\n";
+		return false;
+	}
+	
+	mat M0b=zeros<mat>(NNfit,NNfit);
+	mat M1b=zeros<mat>(NNfit,NNfit);
+	mat M2b=zeros<mat>(NNfit,NNfit);
+	mat M3b=zeros<mat>(NNfit,NNfit);
+	
+	vec Np_Nfit(NNfit);
+	
+	for (Nfit=Nfitmin; Nfit<=Nfitmax; Nfit++)
+	{
+		pmax=Nfit-1;
+		for (np=npmin; np<=pmax; np++)
+		{
+			//	Np_Nfit(Nfit-Nfitmin)=np-npmin+1;
+			
+			X.zeros(Nfit,np+1);
+			for (p=0; p<=np; p++)
+				X.col(p)=pow(tau.rows(0,Nfit-1)/tau(Nfit-1),p);
+			
+			Gchi2tmp=Gtau.rows(0,Nfit-1)+flipud(Gtau.rows(Ntau-Nfit+1,Ntau));
+			CG=Ctau_all.submat(0,0,Nfit-1,Nfit-1)+fliplr(Ctau_all.submat(0,Ntau-Nfit+1,Nfit-1,Ntau))+flipud(Ctau_all.submat(Ntau-Nfit+1,0,Ntau,Nfit-1))+flipud(fliplr(Ctau_all.submat(Ntau-Nfit+1,Ntau-Nfit+1,Ntau,Ntau)));
+			invCG=inv(CG);
+			//	invCG=inv_sympd(CG);
+			AM=(X.t())*invCG*X;
+			BM=(X.t())*invCG*Gchi2tmp;
+			Mtmp=solve(AM,BM);
+			//	if (!solve(Mtmp,AM,BM)) continue;
+			M0b(Nfit-np-1,np-npmin)=-Mtmp(0);
+			M2b(Nfit-np-1,np-npmin)=-2*Mtmp(2)/pow(tau(Nfit-1),2);
+			//	M2b(Nfit-np-1,np-npmin)=-2*Mtmp(2);
+			
+			Gchi2tmp=Gtau.rows(0,Nfit-1)-flipud(Gtau.rows(Ntau-Nfit+1,Ntau));
+			CG=Ctau_all.submat(0,0,Nfit-1,Nfit-1)- fliplr(Ctau_all.submat(0,Ntau-Nfit+1,Nfit-1,Ntau))-flipud(Ctau_all.submat(Ntau-Nfit+1,0,Ntau,Nfit-1))+flipud(fliplr(Ctau_all.submat(Ntau-Nfit+1,Ntau-Nfit+1,Ntau,Ntau)));
+			invCG=inv(CG);
+			//	invCG=inv_sympd(CG);
+			AM=(X.t())*invCG*X;
+			BM=(X.t())*invCG*Gchi2tmp;
+			Mtmp=solve(AM,BM);
+			//	if (!solve(Mtmp,AM,BM)) continue;
+			//	M1b(Nfit-np-1,np-npmin)=Mtmp(1);
+			//	M3b(Nfit-np-1,np-npmin)=6*Mtmp(3);
+			M1b(Nfit-np-1,np-npmin)=Mtmp(1)/tau(Nfit-1);
+			M3b(Nfit-np-1,np-npmin)=6*Mtmp(3)/pow(tau(Nfit-1),3);
+		}
+	}
+	
+	Nv=1;
+	NvN=1;
+	int jmin=NvN;
+	int jmax=NNfit-NvN-2*Nv-1;
+	int Nj=jmax-jmin+1;
+	int lmin=Nv;
+	int lmax=NNfit-2*NvN-Nv-1;
+	int Nl=lmax-lmin+1;
+	M0m.zeros(Nj,Nl);
+	M1m.zeros(Nj,Nl);
+	M2m.zeros(Nj,Nl);
+	mat M3m=zeros<mat>(Nj,Nl);
+	varM0.zeros(Nj,Nl);
+	varM1.zeros(Nj,Nl);
+	varM2.zeros(Nj,Nl);
+	mat varM3=zeros<mat>(Nj,Nl);
+	for (j=jmin; j<=jmax; j++)
+	{
+		for (l=lmin; l<=NNfit-1-j-Nv-NvN; l++)
+		{
+			M0m(j-jmin,l-lmin)=accu(M0b.submat(j-NvN,l-Nv,j+NvN,l+Nv))/((2*Nv+1)*(2*NvN+1));
+			M1m(j-jmin,l-lmin)=accu(M1b.submat(j-NvN,l-Nv,j+NvN,l+Nv))/((2*Nv+1)*(2*NvN+1));
+			M2m(j-jmin,l-lmin)=accu(M2b.submat(j-NvN,l-Nv,j+NvN,l+Nv))/((2*Nv+1)*(2*NvN+1));
+			M3m(j-jmin,l-lmin)=accu(M3b.submat(j-NvN,l-Nv,j+NvN,l+Nv))/((2*Nv+1)*(2*NvN+1));
+			varM0(j-jmin,l-lmin)=accu(pow(M0b.submat(j-NvN,l-Nv,j+NvN,l+Nv)-M0m(j-jmin,l-lmin),2))/((2*Nv+1)*(2*NvN+1));
+			varM1(j-jmin,l-lmin)=accu(pow(M1b.submat(j-NvN,l-Nv,j+NvN,l+Nv)-M1m(j-jmin,l-lmin),2))/((2*Nv+1)*(2*NvN+1));
+			varM2(j-jmin,l-lmin)=accu(pow(M2b.submat(j-NvN,l-Nv,j+NvN,l+Nv)-M2m(j-jmin,l-lmin),2))/((2*Nv+1)*(2*NvN+1));
+			varM3(j-jmin,l-lmin)=accu(pow(M3b.submat(j-NvN,l-Nv,j+NvN,l+Nv)-M3m(j-jmin,l-lmin),2))/((2*Nv+1)*(2*NvN+1));
+		}
+	}
+	
+	//	cout<<varM0<<endl;
+	
+	double varM0max=max(max(varM0));
+	double varM1max=max(max(varM1));
+	double varM2max=max(max(varM2));
+	double varM3max=max(max(varM3));
+	
+	for (j=1; j<Nj; j++)
+	{
+		varM0.submat(j,Nl-j,j,Nl-1)=2*varM0max*ones<rowvec>(j);
+		varM1.submat(j,Nl-j,j,Nl-1)=2*varM1max*ones<rowvec>(j);
+		varM2.submat(j,Nl-j,j,Nl-1)=2*varM2max*ones<rowvec>(j);
+		varM3.submat(j,Nl-j,j,Nl-1)=2*varM3max*ones<rowvec>(j);
+	}
+	
+	//	cout<<"M0b:\n"<<M0b<<endl;
+	//	cout<<"varM0:\n"<<varM0<<endl;
+	//	cout<<"M1b:\n"<<M1b<<endl;
+	//	cout<<"varM1:\n"<<varM1<<endl;
+	//	cout<<"M2b:\n"<<M2b<<endl;
+	//	cout<<"varM2:\n"<<varM2<<endl;
+	//	cout<<"M3b:\n"<<M3b<<endl;
+	//	cout<<"varM3:\n"<<varM3<<endl;
+	
+	varM0.min(jvmin,lvmin);
+	double M0_N=M0m(jvmin,lvmin);
+	varM1.min(jvmin,lvmin);
+	double M1_N=M1m(jvmin,lvmin);
+	varM2.min(jvmin,lvmin);
+	double M2_N=M2m(jvmin,lvmin);
+	varM3.min(jvmin,lvmin);
+	double M3_N=M3m(jvmin,lvmin);
+	
+	cout<<"moments determined by polynomial fit to G(tau) at boundaries:\n";
+	cout<<"norm: "<<M0_N<<endl;
+	cout<<"first moment: "<<M1_N<<endl;
+	cout<<"second moment: "<<M2_N<<endl;
+	cout<<"third moment: "<<M3_N<<endl;
+	
+	
+	if (displ_adv_prep_figs)
+	{
+		graph_2D g1, g2;
+		char lgd_format[]="pfit=%d", lgd_entry[20];
+		char xl[]="Nfit-p";
+		
+		//		vec pfit=linspace<vec>(npmin,Nfitmax-1,NNfit);
+		vec dNp=linspace<vec>(1,NNfit,NNfit);
+		vec vtmp=M0b.col(0);
+		g1.add_data(dNp.memptr(),vtmp.memptr(),NNfit);
+		sprintf(lgd_entry,lgd_format,npmin);
+		g1.add_to_legend(lgd_entry);
+		for (j=1; j<NNfit; j++)
+		{
+			vtmp=M0b.col(j);
+			g1.add_data(dNp.memptr(),vtmp.memptr(),NNfit);
+			sprintf(lgd_entry,lgd_format,npmin+j);
+			g1.add_to_legend(lgd_entry);
+		}
+		g1.add_title("$M_0$");
+		g1.set_axes_labels(xl,NULL);
+		g1.curve_plot();
+		
+		vtmp=M1b.col(0);
+		g2.add_data(dNp.memptr(),vtmp.memptr(),NNfit);
+		sprintf(lgd_entry,lgd_format,npmin);
+		g2.add_to_legend(lgd_entry);
+		for (j=1; j<NNfit; j++)
+		{
+			vtmp=M1b.col(j);
+			g2.add_data(dNp.memptr(),vtmp.memptr(),NNfit);
+			sprintf(lgd_entry,lgd_format,npmin+j);
+			g2.add_to_legend(lgd_entry);
+		}
+		g2.add_title("$M_1$");
+		g2.set_axes_labels(xl,NULL);
+		g2.curve_plot();
+		
+		if (graph_2D::display_figures) cout<<"close the figures to resume execution\n";
+		graph_2D::show_figures();
+		
+	}
+	
+	varM1.min(jvmin,lvmin);
+	np=lvmin+Nv+2;
+	Nfit=jvmin+NvN+np+1;
+	X=zeros<mat>(Nfit,np+1);
+	for (p=0; p<=np; p++)
+		X.col(p)=pow(tau.rows(0,Nfit-1),p);
+	
+	CG=Ctau_all.submat(0,0,Nfit-1,Nfit-1)+fliplr(Ctau_all.submat(0,Ntau-Nfit+1,Nfit-1,Ntau))+flipud(Ctau_all.submat(Ntau-Nfit+1,0,Ntau,Nfit-1))+flipud(fliplr(Ctau_all.submat(Ntau-Nfit+1,Ntau-Nfit+1,Ntau,Ntau)));
+	//	CG(0,0)=CG(1,1);
+	invCG=inv(CG);
+	//	invCG=inv_sympd(CG);
+	AM=(X.t())*invCG*X;
+	mat invAMp=inv(AM);
+	
+	CG=Ctau_all.submat(0,0,Nfit-1,Nfit-1)-fliplr(Ctau_all.submat(0,Ntau-Nfit+1,Nfit-1,Ntau))-flipud(Ctau_all.submat(Ntau-Nfit+1,0,Ntau,Nfit-1))+flipud(fliplr(Ctau_all.submat(Ntau-Nfit+1,Ntau-Nfit+1,Ntau,Ntau)));
+	invCG=inv(CG);
+	//	invCG=inv_sympd(CG);
+	AM=(X.t())*invCG*X;
+	mat invAMn=inv(AM);
+	
+	double std_omega_tmp;
+	double var_omega=M2_N/M0_N-pow(M1_N/M0_N,2);
+	if (var_omega>0)
+		std_omega_tmp=sqrt(var_omega);
+	else
+	{
+		cout<<"Negative variance found during computation of moments.\n";
+		return false;
+	}
+	
+	covm_diag=true;
+	if (!moments_provided)
+	{
+		M.zeros(4);
+		M(0)=M0;
+		M(1)=M1_N;
+		M(2)=M2_N;
+		M(3)=M3_N;
+		M1=M(1);
+		M2=M(2);
+		M3=M(3);
+		NM=4;
+		M1_set=true;
+		M2_set=true;
+		errM.zeros(NM);
+		errM(0)=errM0;
+		errM(1)=sqrt(invAMn(1,1));
+		errM(2)=sqrt(invAMp(2,2));
+		errM(3)=sqrt(invAMn(3,3));
+		errM1=errM(1);
+		errM2=errM(2);
+		errM3=errM(3);
+		M_ord=linspace<vec>(0,NM-1,NM);
+	}
+	else
+	{
+		if (M0)
+		{
+			if (abs(M0_N-M0)/M0_N>tol_norm)
+			{
+				if (M0_in.size())
+					cout<<"warning: norm of spectral function is different from provided one.\n";
+				else
+				{
+					cout<<"warning: spectral function is not normalized.\n";
+					cout<<"Use parameter \"norm of spectral function:\" in subsection DATA PARAMETERS to provide a norm different from 1.\n";
+				}
+			}
+		}
+		
+		if (abs(M1-M1_N)/std_omega_tmp>tol_M1)
+			cout<<"warning: first moment different from provided one\n";
+		
+		if (M2_in.size())
+		{
+			if (abs(M2-M2_N)/M2_N>tol_M2)
+				cout<<"warning: second moment different from provided one\n";
+			
+			if (M3_in.size())
+			{
+				if (abs(M3-M3_N)/pow(std_omega_tmp,3)>tol_M3)
+				{
+					cout<<"warning: third moment different from provided one\n";
+				}
+			}
+			else
+			{
+				M3=M3_N;
+				M.zeros(4);
+				M(0)=M0;
+				M(1)=M1;
+				M(2)=M2;
+				M(3)=M3;
+				errM3=sqrt(invAMn(3,3));
+				NM=4;
+				errM.zeros(NM);
+				errM(0)=errM0;
+				errM(1)=errM1;
+				errM(2)=errM2;
+				errM(3)=errM3;
+				M_ord=linspace<vec>(0,NM-1,NM);
+			}
+		}
+		else if (M3_in.size())
+		{
+			M2=M2_N;
+			M2_set=true;
+			M.zeros(4);
+			M(0)=M0;
+			M(1)=M1;
+			M(2)=M2;
+			M(3)=M3;
+			errM2=sqrt(invAMp(2,2));
+			NM=4;
+			errM.zeros(NM);
+			errM(0)=errM0;
+			errM(1)=errM1;
+			errM(2)=errM2;
+			errM(3)=errM3;
+			M_ord=linspace<vec>(0,NM-1,NM);
+		}
+		else
+		{
+			M2=M2_N;
+			M2_set=true;
+			M3=M3_N;
+			errM2=sqrt(invAMp(2,2));
+			errM3=sqrt(invAMn(3,3));
+			M.zeros(4);
+			M(0)=M0;
+			M(1)=M1;
+			M(2)=M2;
+			M(3)=M3;
+			NM=4;
+			errM.zeros(NM);
+			errM(0)=errM0;
+			errM(1)=errM1;
+			errM(2)=errM2;
+			errM(3)=errM3;
+			M_ord=linspace<vec>(0,NM-1,NM);
+		}
+	}
+	COVM.zeros(NM,NM);
+	COVM.diag()=square(errM);
+	
+	if (!std_omega)
+	{
+		var_omega=M2/M0-pow(M1/M0,2);
+		std_omega=sqrt(var_omega);
+	}
+	
+	if (!SC_set)
+	{
+		SC=M1/M0;
+		SC_set=true;
+	}
+	if (!SW_set)
+	{
+		SW=f_SW_std_omega*std_omega;
+		SW_set=true;
+	}
+	if (M(2)<0)
+	{
+		M=M.rows(0,1);
+		COVM=COVM.submat(0,0,1,1);
+		NM=2;
+	}
+	
+	dG_dtau_computed=compute_dG_dtau();
+	
+	return true;
+}
+
+/*
+bool OmegaMaxEnt_data::compute_moments_tau_fermions()
+{
+	//cout<<"COMPUTING MOMENTS with compute_moments_tau_fermions()\n";
+	cout<<"COMPUTING MOMENTS\n";
+	
+	int sgn=1;
+	if (boson) sgn=-1;
+	
+	int Nfitmax_max=50;
+	
+	int Nfitmax1=50;
+	int Nv=1;
+	int NvN=1;
+	int npmin=2;
+	int npmax=10;
+	int Np=npmax-npmin+1;
+	int DNfitmin=0;
+	int DNfitmax=Ntau-npmax-1;
+	if (Nfitmax1-npmax-1<DNfitmax) DNfitmax=Nfitmax1-npmax-1;
+	int NDN=DNfitmax-DNfitmin+1;
+	
+	cout<<"npmax: "<<npmax<<endl;
+	cout<<"Np: "<<Np<<endl;
+	cout<<"NDN: "<<NDN<<endl;
+	
+	mat M0tmp=zeros<mat>(NDN,Np);
+	mat M1tmp=zeros<mat>(NDN,Np);
+	mat M2tmp=zeros<mat>(NDN,Np);
+	
+	vec Gtmp, pp;
+	int DNfit, np, Nfit;
+	for (DNfit=DNfitmin; DNfit<=DNfitmax; DNfit++)
+	{
+		for (np=npmin; np<=npmax; np++)
+		{
+			Nfit=np+1+DNfit;
+			Gtmp=Gtau.rows(0,Nfit-1)+sgn*flipud(Gtau.rows(Ntau-Nfit+1,Ntau));
+			if (!polyfit(pp,tau.rows(0,Nfit-1),Gtmp,np))
+			{
+				npmax=np-1;
+				continue;
+			}
+			M0tmp(DNfit-DNfitmin,np-npmin)=-pp(np);
+			M2tmp(DNfit-DNfitmin,np-npmin)=-2*pp(np-2);
+			
+			Gtmp=Gtau.rows(0,Nfit-1)-sgn*flipud(Gtau.rows(Ntau-Nfit+1,Ntau));
+			if (!polyfit(pp,tau.rows(0,Nfit-1),Gtmp,np))
+			{
+				npmax=np-1;
+				continue;
+			}
+			M1tmp(DNfit-DNfitmin,np-npmin)=pp(np-1);
+		}
+	}
+	
+	Np=npmax-npmin+1;
+		
+	mat M0m=zeros<mat>(NDN-2*NvN,Np-2*Nv);
+	mat M1m=zeros<mat>(NDN-2*NvN,Np-2*Nv);
+	mat M2m=zeros<mat>(NDN-2*NvN,Np-2*Nv);
+	mat varM0=zeros<mat>(NDN-2*NvN,Np-2*Nv);
+	mat varM1=zeros<mat>(NDN-2*NvN,Np-2*Nv);
+	mat varM2=zeros<mat>(NDN-2*NvN,Np-2*Nv);
+	int j, l;
+	int N_av=(2*Nv+1)*(2*NvN+1);
+	for (l=Nv; l<Np-Nv; l++)
+	{
+		for (j=NvN; j<NDN-NvN; j++)
+		{
+			M0m(j-NvN,l-Nv)=accu(M0tmp.submat(j-NvN,l-Nv,j+NvN,l+Nv))/N_av;
+			M1m(j-NvN,l-Nv)=accu(M1tmp.submat(j-NvN,l-Nv,j+NvN,l+Nv))/N_av;
+			M2m(j-NvN,l-Nv)=accu(M2tmp.submat(j-NvN,l-Nv,j+NvN,l+Nv))/N_av;
+			varM0(j-NvN,l-Nv)=accu(pow(M0tmp.submat(j-NvN,l-Nv,j+NvN,l+Nv)-M0m(j-NvN,l-Nv),2))/N_av;
+			varM1(j-NvN,l-Nv)=accu(pow(M1tmp.submat(j-NvN,l-Nv,j+NvN,l+Nv)-M1m(j-NvN,l-Nv),2))/N_av;
+			varM2(j-NvN,l-Nv)=accu(pow(M2tmp.submat(j-NvN,l-Nv,j+NvN,l+Nv)-M2m(j-NvN,l-Nv),2))/N_av;
+		}
+	}
+	
+	uword jvmin, lvmin;
+	varM0.min(jvmin,lvmin);
+	double M0_NP_tmp=M0m(jvmin,lvmin);
+	varM1.min(jvmin,lvmin);
+	double M1_NP_tmp=M1m(jvmin,lvmin);
+	varM2.min(jvmin,lvmin);
+	double M2_NP_tmp=M2m(jvmin,lvmin);
+	
+	cout<<"M0_NP_tmp: "<<M0_NP_tmp<<endl;
+	cout<<"M1_NP_tmp: "<<M1_NP_tmp<<endl;
+	cout<<"M2_NP_tmp: "<<M2_NP_tmp<<endl;
 	
 	double Wtmp;
 	if (M2_NP_tmp/M0_NP_tmp > pow(M1_NP_tmp/M0_NP_tmp,2))
@@ -10251,6 +10745,7 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	
 	return true;
 }
+*/
 
 bool OmegaMaxEnt_data::set_covar_Gtau()
 {
@@ -23398,7 +23893,7 @@ bool polyval(double x0, vec cfs, vec x, vec &y)
 	return y.is_finite();
 }
 
-bool polyfit(vec x, vec y, int D, double x0, vec &cfs)
+bool polyfit(vec &cfs, vec x, vec y, int D)
 {
 	int N=x.n_rows;
 	
@@ -23407,12 +23902,11 @@ bool polyfit(vec x, vec y, int D, double x0, vec &cfs)
 	
 	int j;
 	
-	vec Dx=x-x0;
-	double Dxmax=Dx.max();
+	double xmax=x.max();
 	
 	for (j=0; j<D; j++)
 	{
-		X.col(j)=pow(Dx/Dxmax,D-j);
+		X.col(j)=pow(x/xmax,D-j);
 	}
 	X.col(D)=ones<vec>(N);
 	
@@ -23423,14 +23917,12 @@ bool polyfit(vec x, vec y, int D, double x0, vec &cfs)
 	
 	for (j=0; j<D; j++)
 	{
-		cfs(j)=cfs(j)/pow(Dxmax,D-j);
+		cfs(j)=cfs(j)/pow(xmax,D-j);
 	}
-	
-//	cfs=solve(A,B);
-//	return cfs.is_finite();
 	
 	return s;
 }
+
 
 void pascal(int n, imat &P)
 {
