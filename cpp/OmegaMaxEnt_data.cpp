@@ -9818,9 +9818,9 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	int sgn=1;
 	if (boson) sgn=-1;
 	
-	int Nfitmax_max=50;
+	int Nfitmax_max=30;
 	
-	int Nfitmax1=50;
+	int Nfitmax1=Nfitmax_max;
 	int Nv=1;
 	int NvN=1;
 	int npmin=2;
@@ -9830,10 +9830,6 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	int DNfitmax=Ntau-npmax-1;
 	if (Nfitmax1-npmax-1<DNfitmax) DNfitmax=Nfitmax1-npmax-1;
 	int NDN=DNfitmax-DNfitmin+1;
-	
-	cout<<"npmax: "<<npmax<<endl;
-	cout<<"Np: "<<Np<<endl;
-	cout<<"NDN: "<<NDN<<endl;
 	
 	mat M0tmp=zeros<mat>(NDN,Np);
 	mat M1tmp=zeros<mat>(NDN,Np);
@@ -9867,24 +9863,27 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	
 	Np=npmax-npmin+1;
 	
- 	vec np_v=linspace<vec>(npmin,npmax,Np);
- 	vec DNfit_v=linspace<vec>(DNfitmin,DNfitmax,NDN);
- 
-	graph_3D g1, g2, g3;
-	
-	g1.add_data(np_v, DNfit_v, M0tmp);
-	g1.set_axes_labels("$d-d_{min}$", "$N_{fit}-p$", "$M_0$");
-	g1.plot_surface();
-	
-	g2.add_data(np_v, DNfit_v, M1tmp);
-	g2.set_axes_labels("$d-d_{min}$", "$N_{fit}-p$", "$M_1$");
-	g2.plot_surface();
-	
-	g3.add_data(np_v, DNfit_v, M2tmp);
-	g3.set_axes_labels("$d-d_{min}$", "$N_{fit}-p$", "$M_2$");
-	g3.plot_surface();
-	
-	graph_3D::show_figures();
+	if (displ_adv_prep_figs)
+	{
+		vec np_v=linspace<vec>(npmin,npmax,Np);
+		vec DNfit_v=linspace<vec>(DNfitmin,DNfitmax,NDN)+1;
+		
+		graph_3D g1, g2, g3;
+		
+		g1.add_data(np_v, DNfit_v, M0tmp);
+		g1.set_axes_labels("$d$", "$N_{fit}-d$", "$M_0$");
+		g1.plot_surface();
+		
+		g2.add_data(np_v, DNfit_v, M1tmp);
+		g2.set_axes_labels("$d$", "$N_{fit}-d$", "$M_1$");
+		g2.plot_surface();
+		
+		g3.add_data(np_v, DNfit_v, M2tmp);
+		g3.set_axes_labels("$d$", "$N_{fit}-d$", "$M_2$");
+		g3.plot_surface();
+		
+		graph_3D::show_figures();
+	}
 
 	mat M0m=zeros<mat>(NDN-2*NvN,Np-2*Nv);
 	mat M1m=zeros<mat>(NDN-2*NvN,Np-2*Nv);
@@ -9915,9 +9914,9 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	varM2.min(jvmin,lvmin);
 	double M2_NP_tmp=M2m(jvmin,lvmin);
 	
-	cout<<"M0_NP_tmp: "<<M0_NP_tmp<<endl;
-	cout<<"M1_NP_tmp: "<<M1_NP_tmp<<endl;
-	cout<<"M2_NP_tmp: "<<M2_NP_tmp<<endl;
+//	cout<<"M0_NP_tmp: "<<M0_NP_tmp<<endl;
+//	cout<<"M1_NP_tmp: "<<M1_NP_tmp<<endl;
+//	cout<<"M2_NP_tmp: "<<M2_NP_tmp<<endl;
 	
 	double Wtmp;
 	if (M2_NP_tmp/M0_NP_tmp > pow(M1_NP_tmp/M0_NP_tmp,2))
@@ -9926,12 +9925,14 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 		Wtmp=abs(M1_NP_tmp/M0_NP_tmp);
 	
 	int Nfitmax=ceil(FNfitTauW*Ntau*tem/(abs(M1_NP_tmp/M0_NP_tmp)+Wtmp));
-	if (Nfitmax>Ntau) Nfitmax=Ntau/2;
+	if (Nfitmax>Ntau/2) Nfitmax=Ntau/2;
 	if (Nfitmax>Nfitmax_max) Nfitmax=Nfitmax_max;
 	
 	mat X;
 	int p, pmax;
 	
+	cout<<"Nfitmax: "<<Nfitmax<<endl;
+
 	Nfit=Nfitmax;
 	np=Nfit-1;
 	X.zeros(Nfit,np+1);
@@ -9942,11 +9943,66 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	vec sK;
 	svd(U,sK,V,X,"std");
 	
-	//	cout<<"sK(np)/sK(0): "<<sK(np)/sK(0)<<endl;
-	
 	p=0;
 	while (p<=np && sK(p)/sK(0)>R_sv_min) p++;
 	Nfitmax=p;
+	
+	cout<<"Nfitmax: "<<Nfitmax<<endl;
+	
+	/*
+	npmax=p-1;
+	vec sK0=sK/sK(0);
+	cout<<"sK:\n"<<sK<<endl;
+	 
+	int Nfit_tmp=Nfit;
+	cout<<"sK("<<npmax<<")/sK(0): "<<sK(npmax)/sK(0)<<endl;
+	char lgd_tmp[100];
+	graph_2D g1, g2;
+	vec sK1;
+	vec vtmp=linspace<vec>(0,Nfit_tmp-1,Nfit_tmp)/(Nfit_tmp-1);
+	g1.add_data(vtmp.memptr(),sK0.memptr(),Nfit_tmp);
+	sprintf(lgd_tmp,"np=%d, Nfit=%d",Nfit_tmp-1, Nfit_tmp);
+	g1.add_to_legend(lgd_tmp);
+	
+	np=npmax;
+	for (Nfit=Nfit_tmp; Nfit>np; Nfit-=50)
+	{
+		vtmp=linspace<vec>(0,Nfit-1,Nfit)/(Nfit-1);
+		X.zeros(Nfit,np+1);
+		for (p=0; p<=np; p++)
+			X.col(p)=pow(tau.rows(0,Nfit-1)/tau(Nfit-1),p);
+		svd(U,sK,V,X,"std");
+		sK1=sK/sK(0);
+		
+		g1.add_data(vtmp.memptr(),sK1.memptr(),np+1);
+		sprintf(lgd_tmp,"np=%d, Nfit=%d",np, Nfit);
+		g1.add_to_legend(lgd_tmp);
+	}
+	g1.curve_plot();
+	
+	vtmp=linspace<vec>(0,Nfit_tmp-1,Nfit_tmp)/(Nfit_tmp-1);
+	g2.add_data(vtmp.memptr(),sK0.memptr(),Nfit_tmp);
+	sprintf(lgd_tmp,"np=%d, Nfit=%d",Nfit_tmp-1, Nfit_tmp);
+	g2.add_to_legend(lgd_tmp);
+	
+	for (Nfit=Nfit_tmp-50; Nfit>=50; Nfit-=50)
+	{
+		vtmp=linspace<vec>(0,Nfit-1,Nfit)/(Nfit-1);
+		np=Nfit-1;
+		X.zeros(Nfit,np+1);
+		for (p=0; p<=np; p++)
+			X.col(p)=pow(tau.rows(0,Nfit-1)/tau(Nfit-1),p);
+		svd(U,sK,V,X,"std");
+		sK1=sK/sK(0);
+		
+		g2.add_data(vtmp.memptr(),sK1.memptr(),np+1);
+		sprintf(lgd_tmp,"np=%d, Nfit=%d",np, Nfit);
+		g2.add_to_legend(lgd_tmp);
+	}
+	g2.curve_plot();
+	
+	graph_2D::show_figures();
+	*/
 	
 	mat CG, invCG, AM;
 	vec Gchi2tmp, BM, Mtmp;
@@ -9965,15 +10021,14 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	mat M2b=zeros<mat>(NNfit,NNfit);
 	mat M3b=zeros<mat>(NNfit,NNfit);
 	
-	vec Np_Nfit(NNfit);
+	ivec pmax_dNfit_0=linspace<ivec>(Nfitmax-1,npmin,Nfitmax-npmin);
+	ivec pmax_dNfit=pmax_dNfit_0;
 	
 	for (Nfit=Nfitmin; Nfit<=Nfitmax; Nfit++)
 	{
 		pmax=Nfit-1;
 		for (np=npmin; np<=pmax; np++)
 		{
-			//	Np_Nfit(Nfit-Nfitmin)=np-npmin+1;
-			
 			X.zeros(Nfit,np+1);
 			for (p=0; p<=np; p++)
 				X.col(p)=pow(tau.rows(0,Nfit-1)/tau(Nfit-1),p);
@@ -9984,8 +10039,13 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 			//	invCG=inv_sympd(CG);
 			AM=(X.t())*invCG*X;
 			BM=(X.t())*invCG*Gchi2tmp;
-			Mtmp=solve(AM,BM);
-			//	if (!solve(Mtmp,AM,BM)) continue;
+	//		Mtmp=solve(AM,BM);
+			if (!solve(Mtmp,AM,BM))
+			{
+				pmax=np-1;
+				if (pmax<pmax_dNfit(Nfit-np-1)) pmax_dNfit(Nfit-np-1)=pmax;
+				continue;
+			}
 			M0b(Nfit-np-1,np-npmin)=-Mtmp(0);
 			M2b(Nfit-np-1,np-npmin)=-2*Mtmp(2)/pow(tau(Nfit-1),2);
 			//	M2b(Nfit-np-1,np-npmin)=-2*Mtmp(2);
@@ -9996,17 +10056,28 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 			//	invCG=inv_sympd(CG);
 			AM=(X.t())*invCG*X;
 			BM=(X.t())*invCG*Gchi2tmp;
-			Mtmp=solve(AM,BM);
-			//	if (!solve(Mtmp,AM,BM)) continue;
+	//		Mtmp=solve(AM,BM);
+			if (!solve(Mtmp,AM,BM))
+			{
+				pmax=np-1;
+				if (pmax<pmax_dNfit(Nfit-np-1)) pmax_dNfit(Nfit-np-1)=pmax;
+				continue;
+			}
 			//	M1b(Nfit-np-1,np-npmin)=Mtmp(1);
 			//	M3b(Nfit-np-1,np-npmin)=6*Mtmp(3);
 			M1b(Nfit-np-1,np-npmin)=Mtmp(1)/tau(Nfit-1);
 			M3b(Nfit-np-1,np-npmin)=6*Mtmp(3)/pow(tau(Nfit-1),3);
+			
 		}
 	}
 	
+//	cout<<"pmax_Nfit:\n";
+//	cout<<pmax_dNfit_0.t()<<endl;
+//	cout<<pmax_dNfit.t()<<endl;
+	
 	Nv=1;
 	NvN=1;
+	N_av=(2*Nv+1)*(2*NvN+1);
 	int jmin=NvN;
 	int jmax=NNfit-NvN-2*Nv-1;
 	int Nj=jmax-jmin+1;
@@ -10021,34 +10092,68 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	varM1.zeros(Nj,Nl);
 	varM2.zeros(Nj,Nl);
 	mat varM3=zeros<mat>(Nj,Nl);
+	
+	ivec lmax_dN(Nj);
 	for (j=jmin; j<=jmax; j++)
 	{
-		for (l=lmin; l<=NNfit-1-j-Nv-NvN; l++)
+		lmax_dN(j-jmin)=pmax_dNfit(j+NvN);
+		if (pmax_dNfit(j)<lmax_dN(j-jmin)) lmax_dN(j-jmin)=pmax_dNfit(j);
+		if (pmax_dNfit(j-NvN)<lmax_dN(j-jmin)) lmax_dN(j-jmin)=pmax_dNfit(j-NvN);
+		lmax_dN(j-jmin)=lmax_dN(j-jmin)-npmin-Nv-NvN;
+		for (l=lmin; l<=lmax_dN(j-jmin); l++)
 		{
-			M0m(j-jmin,l-lmin)=accu(M0b.submat(j-NvN,l-Nv,j+NvN,l+Nv))/((2*Nv+1)*(2*NvN+1));
-			M1m(j-jmin,l-lmin)=accu(M1b.submat(j-NvN,l-Nv,j+NvN,l+Nv))/((2*Nv+1)*(2*NvN+1));
-			M2m(j-jmin,l-lmin)=accu(M2b.submat(j-NvN,l-Nv,j+NvN,l+Nv))/((2*Nv+1)*(2*NvN+1));
-			M3m(j-jmin,l-lmin)=accu(M3b.submat(j-NvN,l-Nv,j+NvN,l+Nv))/((2*Nv+1)*(2*NvN+1));
-			varM0(j-jmin,l-lmin)=accu(pow(M0b.submat(j-NvN,l-Nv,j+NvN,l+Nv)-M0m(j-jmin,l-lmin),2))/((2*Nv+1)*(2*NvN+1));
-			varM1(j-jmin,l-lmin)=accu(pow(M1b.submat(j-NvN,l-Nv,j+NvN,l+Nv)-M1m(j-jmin,l-lmin),2))/((2*Nv+1)*(2*NvN+1));
-			varM2(j-jmin,l-lmin)=accu(pow(M2b.submat(j-NvN,l-Nv,j+NvN,l+Nv)-M2m(j-jmin,l-lmin),2))/((2*Nv+1)*(2*NvN+1));
-			varM3(j-jmin,l-lmin)=accu(pow(M3b.submat(j-NvN,l-Nv,j+NvN,l+Nv)-M3m(j-jmin,l-lmin),2))/((2*Nv+1)*(2*NvN+1));
+			M0m(j-jmin,l-lmin)=accu(M0b.submat(j-NvN,l-Nv,j+NvN,l+Nv))/N_av;
+			M1m(j-jmin,l-lmin)=accu(M1b.submat(j-NvN,l-Nv,j+NvN,l+Nv))/N_av;
+			M2m(j-jmin,l-lmin)=accu(M2b.submat(j-NvN,l-Nv,j+NvN,l+Nv))/N_av;
+			M3m(j-jmin,l-lmin)=accu(M3b.submat(j-NvN,l-Nv,j+NvN,l+Nv))/N_av;
+			varM0(j-jmin,l-lmin)=accu(pow(M0b.submat(j-NvN,l-Nv,j+NvN,l+Nv)-M0m(j-jmin,l-lmin),2))/N_av;
+			varM1(j-jmin,l-lmin)=accu(pow(M1b.submat(j-NvN,l-Nv,j+NvN,l+Nv)-M1m(j-jmin,l-lmin),2))/N_av;
+			varM2(j-jmin,l-lmin)=accu(pow(M2b.submat(j-NvN,l-Nv,j+NvN,l+Nv)-M2m(j-jmin,l-lmin),2))/N_av;
+			varM3(j-jmin,l-lmin)=accu(pow(M3b.submat(j-NvN,l-Nv,j+NvN,l+Nv)-M3m(j-jmin,l-lmin),2))/N_av;
 		}
 	}
-	
-	//	cout<<varM0<<endl;
 	
 	double varM0max=max(max(varM0));
 	double varM1max=max(max(varM1));
 	double varM2max=max(max(varM2));
 	double varM3max=max(max(varM3));
 	
-	for (j=1; j<Nj; j++)
+/*
+	if (displ_adv_prep_figs)
 	{
-		varM0.submat(j,Nl-j,j,Nl-1)=2*varM0max*ones<rowvec>(j);
-		varM1.submat(j,Nl-j,j,Nl-1)=2*varM1max*ones<rowvec>(j);
-		varM2.submat(j,Nl-j,j,Nl-1)=2*varM2max*ones<rowvec>(j);
-		varM3.submat(j,Nl-j,j,Nl-1)=2*varM3max*ones<rowvec>(j);
+		graph_3D g4, g5, g6, g7;
+		
+		vec dNp_v=linspace<vec>(2,Nj+1,Nj);
+		vec dp_v=linspace<vec>(2,Nl+1,Nl);
+		
+		g4.add_data(dp_v, dNp_v, varM0);
+		g4.set_axes_labels("$d$", "$N_{fit}-d$", "$var(M_0)$");
+		g4.plot_surface();
+		
+		g5.add_data(dp_v, dNp_v, varM1);
+		g5.set_axes_labels("$d$", "$N_{fit}-d$", "$var(M_1)$");
+		g5.plot_surface();
+		
+		g6.add_data(dp_v, dNp_v, varM2);
+		g6.set_axes_labels("$d$", "$N_{fit}-d$", "$var(M_2)$");
+		g6.plot_surface();
+		
+		g7.add_data(dp_v, dNp_v, varM3);
+		g7.set_axes_labels("$d$", "$N_{fit}-d$", "$var(M_3)$");
+		g7.plot_surface();
+		
+		graph_3D::show_figures();
+		
+	}
+*/
+	
+	for (j=0; j<Nj; j++)
+	{
+		l=lmax_dN(j)-lmin+1;
+		varM0.submat(j,l,j,Nl-1)=varM0max*ones<rowvec>(Nl-l);
+		varM1.submat(j,l,j,Nl-1)=varM1max*ones<rowvec>(Nl-l);
+		varM2.submat(j,l,j,Nl-1)=varM2max*ones<rowvec>(Nl-l);
+		varM3.submat(j,l,j,Nl-1)=varM3max*ones<rowvec>(Nl-l);
 	}
 	
 	//	cout<<"M0b:\n"<<M0b<<endl;
@@ -10062,12 +10167,16 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	
 	varM0.min(jvmin,lvmin);
 	double M0_N=M0m(jvmin,lvmin);
+	cout<<"jvmin,lvmin: "<<jvmin<<", "<<lvmin<<endl;
 	varM1.min(jvmin,lvmin);
 	double M1_N=M1m(jvmin,lvmin);
+	cout<<"jvmin,lvmin: "<<jvmin<<", "<<lvmin<<endl;
 	varM2.min(jvmin,lvmin);
 	double M2_N=M2m(jvmin,lvmin);
+	cout<<"jvmin,lvmin: "<<jvmin<<", "<<lvmin<<endl;
 	varM3.min(jvmin,lvmin);
 	double M3_N=M3m(jvmin,lvmin);
+	cout<<"jvmin,lvmin: "<<jvmin<<", "<<lvmin<<endl;
 	
 	cout<<"moments determined by polynomial fit to G(tau) at boundaries:\n";
 	cout<<"norm: "<<M0_N<<endl;
@@ -10075,47 +10184,51 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	cout<<"second moment: "<<M2_N<<endl;
 	cout<<"third moment: "<<M3_N<<endl;
 	
-	
+	npmax=Nfitmax-1;
 	if (displ_adv_prep_figs)
 	{
-		graph_2D g1, g2;
-		char lgd_format[]="pfit=%d", lgd_entry[20];
-		char xl[]="Nfit-p";
-		
-		//		vec pfit=linspace<vec>(npmin,Nfitmax-1,NNfit);
 		vec dNp=linspace<vec>(1,NNfit,NNfit);
-		vec vtmp=M0b.col(0);
-		g1.add_data(dNp.memptr(),vtmp.memptr(),NNfit);
-		sprintf(lgd_entry,lgd_format,npmin);
-		g1.add_to_legend(lgd_entry);
-		for (j=1; j<NNfit; j++)
-		{
-			vtmp=M0b.col(j);
-			g1.add_data(dNp.memptr(),vtmp.memptr(),NNfit);
-			sprintf(lgd_entry,lgd_format,npmin+j);
-			g1.add_to_legend(lgd_entry);
-		}
-		g1.add_title("$M_0$");
-		g1.set_axes_labels(xl,NULL);
-		g1.curve_plot();
+		vec dp=linspace<vec>(npmin,npmax,NNfit);
 		
-		vtmp=M1b.col(0);
-		g2.add_data(dNp.memptr(),vtmp.memptr(),NNfit);
-		sprintf(lgd_entry,lgd_format,npmin);
-		g2.add_to_legend(lgd_entry);
-		for (j=1; j<NNfit; j++)
-		{
-			vtmp=M1b.col(j);
-			g2.add_data(dNp.memptr(),vtmp.memptr(),NNfit);
-			sprintf(lgd_entry,lgd_format,npmin+j);
-			g2.add_to_legend(lgd_entry);
-		}
-		g2.add_title("$M_1$");
-		g2.set_axes_labels(xl,NULL);
-		g2.curve_plot();
+		graph_3D g1, g2, g3, g4, g5, g6, g7, g8;
 		
-		if (graph_2D::display_figures) cout<<"close the figures to resume execution\n";
-		graph_2D::show_figures();
+		g1.add_data(dp, dNp, M0b);
+		g1.set_axes_labels("$d$", "$N_{fit}-d$", "$M_0$");
+		g1.plot_surface();
+		
+		g2.add_data(dp, dNp, M1b);
+		g2.set_axes_labels("$d$", "$N_{fit}-d$", "$M_1$");
+		g2.plot_surface();
+		
+		g3.add_data(dp, dNp, M2b);
+		g3.set_axes_labels("$d$", "$N_{fit}-d$", "$M_2$");
+		g3.plot_surface();
+		
+		g4.add_data(dp, dNp, M3b);
+		g4.set_axes_labels("$d$", "$N_{fit}-d$", "$M_3$");
+		g4.plot_surface();
+		
+	
+		vec dNp_v=linspace<vec>(2,Nj+1,Nj);
+		vec dp_v=linspace<vec>(2,Nl+1,Nl);
+		
+		g5.add_data(dp_v, dNp_v, varM0);
+		g5.set_axes_labels("$d$", "$N_{fit}-d$", "$var(M_0)$");
+		g5.plot_surface();
+		
+		g6.add_data(dp_v, dNp_v, varM1);
+		g6.set_axes_labels("$d$", "$N_{fit}-d$", "$var(M_1)$");
+		g6.plot_surface();
+		
+		g7.add_data(dp_v, dNp_v, varM2);
+		g7.set_axes_labels("$d$", "$N_{fit}-d$", "$var(M_2)$");
+		g7.plot_surface();
+		
+		g8.add_data(dp_v, dNp_v, varM3);
+		g8.set_axes_labels("$d$", "$N_{fit}-d$", "$var(M_3)$");
+		g8.plot_surface();
+	
+		graph_3D::show_figures();
 		
 	}
 	
