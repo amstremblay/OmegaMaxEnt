@@ -1544,12 +1544,12 @@ int OmegaMaxEnt_data::loop_run()
 								char title_G_Re_w[]="Retarded Green function in frequency";
 								char attrG1[]="'-',color='b'";
 								char attrG2[]="'-',color='r'";
-							//	char attrG3[]="'-',color='m'";
-							//	char attrG4[]="'-',color='c'";
+								char attrG3[]="'-',color='m'";
+								char attrG4[]="'-',color='c'";
 								char lgdG1[]="Re$[G^R(\\omega)]$";
 								char lgdG2[]="Im$[G^R(\\omega)]$";
-							//	char lgdG3[]="Re$[G_{KK}(\\omega)]$";
-							//	char lgdG4[]="Im$[G_{FFT}(\\omega)]$";
+								char lgdG3[]="Re$[G_{KK}(\\omega)]$";
+								char lgdG4[]="Im$[G_{FFT}(\\omega)]$";
 								char xlG[]="$\\omega$";
 								
 							/*
@@ -3684,7 +3684,7 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 		vec A_out;
 		spline_val(w_out, w_dense, coeffs, A_out);
 		Gi_Re_w=-A_out/2;
-		if (boson) Gi_Re_w=w_out%Gi_Re_w;
+	//	if (boson) Gi_Re_w=w_out%Gi_Re_w;
 		
 		coeffs.zeros();
 		coeffs(0)=dG_w(0);
@@ -8700,6 +8700,26 @@ bool OmegaMaxEnt_data::set_G_omega_n_bosons()
 	{
 		if (col_Gi>0)
 		{
+			graph_2D g1;
+			char ttl[]="Input Matsubara frequency data";
+			char lgdr[]="$Re[G]$";
+			char lgdi[]="$Im[G]$";
+			char xl[]="$\\\\omega_n$";
+			char attr1[]="'o-', color='b', markeredgecolor='b', markerfacecolor='b'";
+			char attr2[]="'o-', color='r', markeredgecolor='r', markerfacecolor='r'";
+			
+			g1.add_data(wn.memptr(),Gr.memptr(),Nn);
+			g1.add_attribute(attr1);
+			g1.add_to_legend(lgdr);
+			g1.add_data(wn.memptr(),Gi.memptr(),Nn);
+			g1.add_attribute(attr2);
+			g1.add_to_legend(lgdi);
+			g1.add_title(ttl);
+			g1.set_axes_labels(xl,NULL);
+			g1.curve_plot();
+			graph_2D::show_figures();
+			
+		/*
 			graph_2D g1, g2;
 			
 			//		graph_2D::show_commands(true);
@@ -8719,6 +8739,7 @@ bool OmegaMaxEnt_data::set_G_omega_n_bosons()
 			
 			if (graph_2D::display_figures) cout<<"close the figures to resume execution\n";
 			graph_2D::show_figures();
+		 */
 		}
 		else
 		{
@@ -22011,6 +22032,26 @@ bool OmegaMaxEnt_data::set_covar_G_omega_n()
 	
 	if (displ_prep_figs && cov_diag)
 	{
+		graph_2D g1;
+		char ttl[]="Error on Matsubara frequency data";
+		char lgdr[]="$\\sigma_{Re}$";
+		char lgdi[]="$\\sigma_{Im}$";
+		char xl[]="$\\\\omega_n$";
+		char attr1[]="'o-', color='b', markeredgecolor='b', markerfacecolor='b'";
+		char attr2[]="'o-', color='r', markeredgecolor='r', markerfacecolor='r'";
+		
+		g1.add_data(wn.memptr(),errGr.memptr(),Nn);
+		g1.add_attribute(attr1);
+		g1.add_to_legend(lgdr);
+		g1.add_data(wn.memptr(),errGi.memptr(),Nn);
+		g1.add_attribute(attr2);
+		g1.add_to_legend(lgdi);
+		g1.add_title(ttl);
+		g1.set_axes_labels(xl,NULL);
+		g1.curve_plot();
+		graph_2D::show_figures();
+		
+	/*
 		graph_2D g1, g2;
 
 		char ttlRe[]="error on $Re[G]$";
@@ -22028,6 +22069,7 @@ bool OmegaMaxEnt_data::set_covar_G_omega_n()
 		
 		if (graph_2D::display_figures) cout<<"close the figures to resume execution\n";
 		graph_2D::show_figures();
+	 */
 	}
 	
 	COV=0.5*(COV+COV.t());
@@ -22198,9 +22240,27 @@ bool OmegaMaxEnt_data::set_G_omega_n_fermions()
 	
 	if (displ_prep_figs)
 	{
-		graph_2D g1, g2;
+		graph_2D g1;
+		char ttl[]="Input Matsubara frequency data";
+		char lgdr[]="$Re[G]$";
+		char lgdi[]="$Im[G]$";
+		char xl[]="$\\\\omega_n$";
+		char attr1[]="'o-', color='b', markeredgecolor='b', markerfacecolor='b'";
+		char attr2[]="'o-', color='r', markeredgecolor='r', markerfacecolor='r'";
 		
-//		graph_2D::show_commands(true);
+		g1.add_data(wn.memptr(),Gr.memptr(),Nn);
+		g1.add_attribute(attr1);
+		g1.add_to_legend(lgdr);
+		g1.add_data(wn.memptr(),Gi.memptr(),Nn);
+		g1.add_attribute(attr2);
+		g1.add_to_legend(lgdi);
+		g1.add_title(ttl);
+		g1.set_axes_labels(xl,NULL);
+		g1.curve_plot();
+		graph_2D::show_figures();
+		
+		/*
+		graph_2D g1, g2;
 		
 		char ttlRe[]="Real part of data";
 		char ttlIm[]="Imaginary part of data";
@@ -22217,6 +22277,8 @@ bool OmegaMaxEnt_data::set_G_omega_n_fermions()
 		
 		if (graph_2D::display_figures) cout<<"close the figures to resume execution\n";
 		graph_2D::show_figures();
+		*/
+		
 	}
 	
 	return true;
