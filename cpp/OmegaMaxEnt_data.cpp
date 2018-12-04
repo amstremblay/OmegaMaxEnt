@@ -2001,7 +2001,7 @@ bool OmegaMaxEnt_data::preproc()
 			
 			if ( !moments_provided || eval_moments )
 			{
-				if (!compute_moments_tau_fermions())
+				if (!compute_moments_tau())
 				{
 					cout<<"Computation of moments failed.\n";
 					return false;
@@ -2361,13 +2361,6 @@ bool OmegaMaxEnt_data::preproc()
 						return false;
 					}
 				}
-				/*
-				if (!compute_moments_omega_n())
-				{
-					cout<<"computation of moments failed\n";
-					return false;
-				}
-				 */
 			}
 			if (std_omega) cout<<"standard deviation of spectrum: "<<std_omega<<endl;
 		}
@@ -2442,9 +2435,9 @@ bool OmegaMaxEnt_data::preproc()
 				return false;
 			}
 
-			if ( !moments_provided  || eval_moments )
+			if ( !moments_provided || eval_moments )
 			{
-				if (!compute_moments_tau_bosons())
+				if (!compute_moments_tau())
 				{
 					cout<<"Computation of moments failed.\n";
 					return false;
@@ -2458,9 +2451,12 @@ bool OmegaMaxEnt_data::preproc()
 			}
 
  			M1n=abs(Gr(0));
+			M0_A=M1n;
+			M1_A=M0;
+			M2_A=M1;
 			if (!std_omega)
 			{
-				double var_omega=M1/M1n-pow(M0/M1n,2);
+				double var_omega=M2_A/M0_A-pow(M1_A/M0_A,2);
 				std_omega=sqrt(var_omega);
 			}
 			
@@ -2848,7 +2844,7 @@ bool OmegaMaxEnt_data::preproc()
 		
 			if ( !moments_provided || eval_moments )
 			{
-				if (!compute_moments_tau_bosons())
+				if (!compute_moments_tau())
 				{
 					cout<<"Computation of moments failed.\n";
 					return false;
@@ -2862,10 +2858,12 @@ bool OmegaMaxEnt_data::preproc()
 			}
 			
 			M1n=abs(Gr(0));
-			
+			M0_A=M1n;
+			M1_A=M0;
+			M2_A=M1;
 			if (!std_omega)
 			{
-				double var_omega=M1/M1n-pow(M0/M1n,2);
+				double var_omega=M2_A/M0_A-pow(M1_A/M0_A,2);
 				std_omega=sqrt(var_omega);
 			}
 			
@@ -2981,11 +2979,6 @@ bool OmegaMaxEnt_data::preproc()
 			graph_2D::show_figures();
 		}
 		
-	//	if (Nw<Nw_max)
-	//	{
-	//		cout<<"number of real frequencies in the grid: "<<Nw<<endl;
-	//	}
-	//	else
 		if (Nw>Nw_max)
 		{
 		//	cout<<"number of frequencies Nw="<<Nw<<" larger than Nw_max="<<Nw_max<<endl;
@@ -3049,10 +3042,6 @@ bool OmegaMaxEnt_data::preproc()
 		dwS.rows(1,Nw-2)=w.rows(2,Nw-1)-w.rows(0,Nw-3);
 		dwS(0)=w(1)-w(0);
 		
-	//	invDw=diagmat(1.0/dwS);
-	//	KGMw=2*PI*KGM*invDw;
-	//	HKw=KGMw.t()*KGMw;
-		
 		vec A0_default=default_model/exp(1);
 		if (!init_spectrum_exists) A0=A0_default;
 		
@@ -3072,9 +3061,6 @@ bool OmegaMaxEnt_data::preproc()
 		sK2=pow(sK,2);
 		
 		alpha0_default=f_alpha_init*sK2.max();
-		
-		//vec Rchi2_S=(HK*default_model)/(2*dwS);
-		//alpha0_default=f_alpha_init*max(abs(Rchi2_S));
 
 		rowvec w0ASmin(1);
 		rowvec s0ASmin(1);
@@ -7038,6 +7024,7 @@ bool OmegaMaxEnt_data::set_covar_chi_omega_n()
 	return true;
 }
 
+/*
 bool OmegaMaxEnt_data::compute_moments_tau_bosons()
 {
 	cout<<"COMPUTING MOMENTS\n";
@@ -7424,6 +7411,7 @@ bool OmegaMaxEnt_data::compute_moments_tau_bosons()
 	
 	return true;
 }
+*/
 
 bool OmegaMaxEnt_data::Kernel_G_bosons()
 {
@@ -9569,6 +9557,7 @@ bool OmegaMaxEnt_data::Fourier_transform_G_tau()
 	return true;
 }
 
+/*
 //compute derivatives of G(tau) at tau=0 and tau=beta
 bool OmegaMaxEnt_data::compute_dG_dtau()
 {
@@ -9765,7 +9754,7 @@ bool OmegaMaxEnt_data::compute_dG_dtau()
 	var_d3Gb.min(jvmin,lvmin);
 	d3G_tau(1)=d3Gbm(jvmin,lvmin);
 	cout<<"third moment: "<<(d3G_tau(0)+sgn*d3G_tau(1))<<endl;
-	
+	*/
 	/*
 	if (displ_adv_prep_figs)
 	{
@@ -9806,13 +9795,13 @@ bool OmegaMaxEnt_data::compute_dG_dtau()
 		
 	}
 	*/
-	
+/*
 	return true;
 }
+*/
 
-bool OmegaMaxEnt_data::compute_moments_tau_fermions()
+bool OmegaMaxEnt_data::compute_moments_tau()
 {
-	//cout<<"COMPUTING MOMENTS with compute_moments_tau_fermions()\n";
 	cout<<"COMPUTING MOMENTS\n";
 	
 	int sgn=1;
@@ -9918,20 +9907,36 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 //	cout<<"M1_NP_tmp: "<<M1_NP_tmp<<endl;
 //	cout<<"M2_NP_tmp: "<<M2_NP_tmp<<endl;
 	
+	M0_A=M0_NP_tmp;
+	M1_A=M1_NP_tmp;
+	M2_A=M2_NP_tmp;
+	if (boson)
+	{
+		M0_A=M1n;
+		M1_A=M0_NP_tmp;
+		M2_A=M1_NP_tmp;
+	}
+	
 	double Wtmp;
+	if (M2_A/M0_A > pow(M1_A/M0_A,2))
+		Wtmp=sqrt(M2_A/M0_A-pow(M1_A/M0_A,2));
+	else
+		Wtmp=abs(M1_A/M0_A);
+/*
 	if (M2_NP_tmp/M0_NP_tmp > pow(M1_NP_tmp/M0_NP_tmp,2))
 		Wtmp=sqrt(M2_NP_tmp/M0_NP_tmp-pow(M1_NP_tmp/M0_NP_tmp,2));
 	else
 		Wtmp=abs(M1_NP_tmp/M0_NP_tmp);
+*/
 	
-	int Nfitmax=ceil(FNfitTauW*Ntau*tem/(abs(M1_NP_tmp/M0_NP_tmp)+Wtmp));
+	int Nfitmax=ceil(FNfitTauW*Ntau*tem/(abs(M1_A/M0_A)+Wtmp));
 	if (Nfitmax>Ntau/2) Nfitmax=Ntau/2;
 	if (Nfitmax>Nfitmax_max) Nfitmax=Nfitmax_max;
 	
 	mat X;
 	int p, pmax;
 	
-	cout<<"Nfitmax: "<<Nfitmax<<endl;
+//	cout<<"Nfitmax: "<<Nfitmax<<endl;
 
 	Nfit=Nfitmax;
 	np=Nfit-1;
@@ -9947,7 +9952,7 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	while (p<=np && sK(p)/sK(0)>R_sv_min) p++;
 	Nfitmax=p;
 	
-	cout<<"Nfitmax: "<<Nfitmax<<endl;
+//	cout<<"Nfitmax: "<<Nfitmax<<endl;
 	
 	/*
 	npmax=p-1;
@@ -10012,7 +10017,7 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	
 	if (NNfit<5)
 	{
-		cout<<"compute_moments_tau_fermions(): unable to compute the moments from G(tau). The imaginary time step can be either too small or too large. You can either change the step, provide the first moment, or increase parameter R_sv_min in file \"OmegaMaxEnt_other_params.dat\".\n";
+		cout<<"compute_moments_tau(): unable to compute the moments from G(tau). The imaginary time step can be either too small or too large. You can either change the step, provide the first moment, or increase parameter R_sv_min in file \"OmegaMaxEnt_other_params.dat\".\n";
 		return false;
 	}
 	
@@ -10020,6 +10025,15 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	mat M1b=zeros<mat>(NNfit,NNfit);
 	mat M2b=zeros<mat>(NNfit,NNfit);
 	mat M3b=zeros<mat>(NNfit,NNfit);
+	
+	mat G0=zeros<mat>(NNfit,NNfit);
+	mat dG0=zeros<mat>(NNfit,NNfit);
+	mat d2G0=zeros<mat>(NNfit,NNfit);
+	mat d3G0=zeros<mat>(NNfit,NNfit);
+	mat Gb=zeros<mat>(NNfit,NNfit);
+	mat dGb=zeros<mat>(NNfit,NNfit);
+	mat d2Gb=zeros<mat>(NNfit,NNfit);
+	mat d3Gb=zeros<mat>(NNfit,NNfit);
 	
 	ivec pmax_dNfit_0=linspace<ivec>(Nfitmax-1,npmin,Nfitmax-npmin);
 	ivec pmax_dNfit=pmax_dNfit_0;
@@ -10033,10 +10047,9 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 			for (p=0; p<=np; p++)
 				X.col(p)=pow(tau.rows(0,Nfit-1)/tau(Nfit-1),p);
 			
-			Gchi2tmp=Gtau.rows(0,Nfit-1)+flipud(Gtau.rows(Ntau-Nfit+1,Ntau));
-			CG=Ctau_all.submat(0,0,Nfit-1,Nfit-1)+fliplr(Ctau_all.submat(0,Ntau-Nfit+1,Nfit-1,Ntau))+flipud(Ctau_all.submat(Ntau-Nfit+1,0,Ntau,Nfit-1))+flipud(fliplr(Ctau_all.submat(Ntau-Nfit+1,Ntau-Nfit+1,Ntau,Ntau)));
+			Gchi2tmp=Gtau.rows(0,Nfit-1)+sgn*flipud(Gtau.rows(Ntau-Nfit+1,Ntau));
+			CG=Ctau_all.submat(0,0,Nfit-1,Nfit-1)+sgn*fliplr(Ctau_all.submat(0,Ntau-Nfit+1,Nfit-1,Ntau))+sgn*flipud(Ctau_all.submat(Ntau-Nfit+1,0,Ntau,Nfit-1))+flipud(fliplr(Ctau_all.submat(Ntau-Nfit+1,Ntau-Nfit+1,Ntau,Ntau)));
 			invCG=inv(CG);
-			//	invCG=inv_sympd(CG);
 			AM=(X.t())*invCG*X;
 			BM=(X.t())*invCG*Gchi2tmp;
 	//		Mtmp=solve(AM,BM);
@@ -10050,10 +10063,9 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 			M2b(Nfit-np-1,np-npmin)=-2*Mtmp(2)/pow(tau(Nfit-1),2);
 			//	M2b(Nfit-np-1,np-npmin)=-2*Mtmp(2);
 			
-			Gchi2tmp=Gtau.rows(0,Nfit-1)-flipud(Gtau.rows(Ntau-Nfit+1,Ntau));
-			CG=Ctau_all.submat(0,0,Nfit-1,Nfit-1)- fliplr(Ctau_all.submat(0,Ntau-Nfit+1,Nfit-1,Ntau))-flipud(Ctau_all.submat(Ntau-Nfit+1,0,Ntau,Nfit-1))+flipud(fliplr(Ctau_all.submat(Ntau-Nfit+1,Ntau-Nfit+1,Ntau,Ntau)));
+			Gchi2tmp=Gtau.rows(0,Nfit-1)-sgn*flipud(Gtau.rows(Ntau-Nfit+1,Ntau));
+			CG=Ctau_all.submat(0,0,Nfit-1,Nfit-1)-sgn*fliplr(Ctau_all.submat(0,Ntau-Nfit+1,Nfit-1,Ntau))-sgn*flipud(Ctau_all.submat(Ntau-Nfit+1,0,Ntau,Nfit-1))+flipud(fliplr(Ctau_all.submat(Ntau-Nfit+1,Ntau-Nfit+1,Ntau,Ntau)));
 			invCG=inv(CG);
-			//	invCG=inv_sympd(CG);
 			AM=(X.t())*invCG*X;
 			BM=(X.t())*invCG*Gchi2tmp;
 	//		Mtmp=solve(AM,BM);
@@ -10067,6 +10079,41 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 			//	M3b(Nfit-np-1,np-npmin)=6*Mtmp(3);
 			M1b(Nfit-np-1,np-npmin)=Mtmp(1)/tau(Nfit-1);
 			M3b(Nfit-np-1,np-npmin)=6*Mtmp(3)/pow(tau(Nfit-1),3);
+			
+			Gchi2tmp=Gtau.rows(0,Nfit-1);
+			CG=Ctau_all.submat(0,0,Nfit-1,Nfit-1);
+			invCG=inv(CG);
+			AM=(X.t())*invCG*X;
+			BM=(X.t())*invCG*Gchi2tmp;
+		//	Mtmp=solve(AM,BM);
+			if (!solve(Mtmp,AM,BM))
+			{
+				pmax=np-1;
+				if (pmax<pmax_dNfit(Nfit-np-1)) pmax_dNfit(Nfit-np-1)=pmax;
+				continue;
+			}
+			G0(Nfit-np-1,np-npmin)=Mtmp(0);
+			dG0(Nfit-np-1,np-npmin)=Mtmp(1)/tau(Nfit-1);
+			d2G0(Nfit-np-1,np-npmin)=2*Mtmp(2)/pow(tau(Nfit-1),2);
+			d3G0(Nfit-np-1,np-npmin)=6*Mtmp(3)/pow(tau(Nfit-1),3);
+			
+			Gchi2tmp=flipud(Gtau.rows(Ntau-Nfit+1,Ntau));
+			CG=flipud(fliplr(Ctau_all.submat(Ntau-Nfit+1,Ntau-Nfit+1,Ntau,Ntau)));
+			invCG=inv(CG);
+			//	invCG=inv_sympd(CG);
+			AM=(X.t())*invCG*X;
+			BM=(X.t())*invCG*Gchi2tmp;
+	//		Mtmp=solve(AM,BM);
+			if (!solve(Mtmp,AM,BM))
+			{
+				pmax=np-1;
+				if (pmax<pmax_dNfit(Nfit-np-1)) pmax_dNfit(Nfit-np-1)=pmax;
+				continue;
+			}
+			Gb(Nfit-np-1,np-npmin)=Mtmp(0);
+			dGb(Nfit-np-1,np-npmin)=-Mtmp(1)/tau(Nfit-1);
+			d2Gb(Nfit-np-1,np-npmin)=2*Mtmp(2)/pow(tau(Nfit-1),2);
+			d3Gb(Nfit-np-1,np-npmin)=-6*Mtmp(3)/pow(tau(Nfit-1),3);
 			
 		}
 	}
@@ -10093,6 +10140,23 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	varM2.zeros(Nj,Nl);
 	mat varM3=zeros<mat>(Nj,Nl);
 	
+	mat G0m=zeros<mat>(Nj,Nl);
+	mat dG0m=zeros<mat>(Nj,Nl);
+	mat d2G0m=zeros<mat>(Nj,Nl);
+	mat d3G0m=zeros<mat>(Nj,Nl);
+	mat Gbm=zeros<mat>(Nj,Nl);
+	mat dGbm=zeros<mat>(Nj,Nl);
+	mat d2Gbm=zeros<mat>(Nj,Nl);
+	mat d3Gbm=zeros<mat>(Nj,Nl);
+	mat var_G0=zeros<mat>(Nj,Nl);
+	mat var_dG0=zeros<mat>(Nj,Nl);
+	mat var_d2G0=zeros<mat>(Nj,Nl);
+	mat var_d3G0=zeros<mat>(Nj,Nl);
+	mat var_Gb=zeros<mat>(Nj,Nl);
+	mat var_dGb=zeros<mat>(Nj,Nl);
+	mat var_d2Gb=zeros<mat>(Nj,Nl);
+	mat var_d3Gb=zeros<mat>(Nj,Nl);
+	
 	ivec lmax_dN(Nj);
 	for (j=jmin; j<=jmax; j++)
 	{
@@ -10110,13 +10174,25 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 			varM1(j-jmin,l-lmin)=accu(pow(M1b.submat(j-NvN,l-Nv,j+NvN,l+Nv)-M1m(j-jmin,l-lmin),2))/N_av;
 			varM2(j-jmin,l-lmin)=accu(pow(M2b.submat(j-NvN,l-Nv,j+NvN,l+Nv)-M2m(j-jmin,l-lmin),2))/N_av;
 			varM3(j-jmin,l-lmin)=accu(pow(M3b.submat(j-NvN,l-Nv,j+NvN,l+Nv)-M3m(j-jmin,l-lmin),2))/N_av;
+			
+			G0m(j-jmin,l-lmin)=accu(G0.submat(j-NvN,l-Nv,j+NvN,l+Nv))/N_av;
+			dG0m(j-jmin,l-lmin)=accu(dG0.submat(j-NvN,l-Nv,j+NvN,l+Nv))/N_av;
+			d2G0m(j-jmin,l-lmin)=accu(d2G0.submat(j-NvN,l-Nv,j+NvN,l+Nv))/N_av;
+			d3G0m(j-jmin,l-lmin)=accu(d3G0.submat(j-NvN,l-Nv,j+NvN,l+Nv))/N_av;
+			var_G0(j-jmin,l-lmin)=accu(pow(G0.submat(j-NvN,l-Nv,j+NvN,l+Nv)-G0m(j-jmin,l-lmin),2))/N_av;
+			var_dG0(j-jmin,l-lmin)=accu(pow(dG0.submat(j-NvN,l-Nv,j+NvN,l+Nv)-dG0m(j-jmin,l-lmin),2))/N_av;
+			var_d2G0(j-jmin,l-lmin)=accu(pow(d2G0.submat(j-NvN,l-Nv,j+NvN,l+Nv)-d2G0m(j-jmin,l-lmin),2))/N_av;
+			var_d3G0(j-jmin,l-lmin)=accu(pow(d3G0.submat(j-NvN,l-Nv,j+NvN,l+Nv)-d3G0m(j-jmin,l-lmin),2))/N_av;
+			Gbm(j-jmin,l-lmin)=accu(Gb.submat(j-NvN,l-Nv,j+NvN,l+Nv))/N_av;
+			dGbm(j-jmin,l-lmin)=accu(dGb.submat(j-NvN,l-Nv,j+NvN,l+Nv))/N_av;
+			d2Gbm(j-jmin,l-lmin)=accu(d2Gb.submat(j-NvN,l-Nv,j+NvN,l+Nv))/N_av;
+			d3Gbm(j-jmin,l-lmin)=accu(d3Gb.submat(j-NvN,l-Nv,j+NvN,l+Nv))/N_av;
+			var_Gb(j-jmin,l-lmin)=accu(pow(Gb.submat(j-NvN,l-Nv,j+NvN,l+Nv)-Gbm(j-jmin,l-lmin),2))/N_av;
+			var_dGb(j-jmin,l-lmin)=accu(pow(dGb.submat(j-NvN,l-Nv,j+NvN,l+Nv)-dGbm(j-jmin,l-lmin),2))/N_av;
+			var_d2Gb(j-jmin,l-lmin)=accu(pow(d2Gb.submat(j-NvN,l-Nv,j+NvN,l+Nv)-d2Gbm(j-jmin,l-lmin),2))/N_av;
+			var_d3Gb(j-jmin,l-lmin)=accu(pow(d3Gb.submat(j-NvN,l-Nv,j+NvN,l+Nv)-d3Gbm(j-jmin,l-lmin),2))/N_av;
 		}
 	}
-	
-	double varM0max=max(max(varM0));
-	double varM1max=max(max(varM1));
-	double varM2max=max(max(varM2));
-	double varM3max=max(max(varM3));
 	
 /*
 	if (displ_adv_prep_figs)
@@ -10146,6 +10222,19 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 		
 	}
 */
+	double varM0max=max(max(varM0));
+	double varM1max=max(max(varM1));
+	double varM2max=max(max(varM2));
+	double varM3max=max(max(varM3));
+	
+	double var_G0max=max(max(var_G0));
+	double var_dG0max=max(max(var_dG0));
+	double var_d2G0max=max(max(var_d2G0));
+	double var_d3G0max=max(max(var_d3G0));
+	double var_Gbmax=max(max(var_Gb));
+	double var_dGbmax=max(max(var_dGb));
+	double var_d2Gbmax=max(max(var_d2Gb));
+	double var_d3Gbmax=max(max(var_d3Gb));
 	
 	for (j=0; j<Nj; j++)
 	{
@@ -10154,6 +10243,15 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 		varM1.submat(j,l,j,Nl-1)=varM1max*ones<rowvec>(Nl-l);
 		varM2.submat(j,l,j,Nl-1)=varM2max*ones<rowvec>(Nl-l);
 		varM3.submat(j,l,j,Nl-1)=varM3max*ones<rowvec>(Nl-l);
+		
+		var_G0.submat(j,l,j,Nl-1)=var_G0max*ones<rowvec>(Nl-l);
+		var_dG0.submat(j,l,j,Nl-1)=var_dG0max*ones<rowvec>(Nl-l);
+		var_d2G0.submat(j,l,j,Nl-1)=var_d2G0max*ones<rowvec>(Nl-l);
+		var_d3G0.submat(j,l,j,Nl-1)=var_d3G0max*ones<rowvec>(Nl-l);
+		var_Gb.submat(j,l,j,Nl-1)=var_Gbmax*ones<rowvec>(Nl-l);
+		var_dGb.submat(j,l,j,Nl-1)=var_dGbmax*ones<rowvec>(Nl-l);
+		var_d2Gb.submat(j,l,j,Nl-1)=var_d2Gbmax*ones<rowvec>(Nl-l);
+		var_d3Gb.submat(j,l,j,Nl-1)=var_d3Gbmax*ones<rowvec>(Nl-l);
 	}
 	
 	//	cout<<"M0b:\n"<<M0b<<endl;
@@ -10167,22 +10265,52 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	
 	varM0.min(jvmin,lvmin);
 	double M0_N=M0m(jvmin,lvmin);
-	cout<<"jvmin,lvmin: "<<jvmin<<", "<<lvmin<<endl;
+//	cout<<"jvmin,lvmin: "<<jvmin<<", "<<lvmin<<endl;
 	varM1.min(jvmin,lvmin);
 	double M1_N=M1m(jvmin,lvmin);
-	cout<<"jvmin,lvmin: "<<jvmin<<", "<<lvmin<<endl;
+//	cout<<"jvmin,lvmin: "<<jvmin<<", "<<lvmin<<endl;
 	varM2.min(jvmin,lvmin);
 	double M2_N=M2m(jvmin,lvmin);
-	cout<<"jvmin,lvmin: "<<jvmin<<", "<<lvmin<<endl;
+//	cout<<"jvmin,lvmin: "<<jvmin<<", "<<lvmin<<endl;
 	varM3.min(jvmin,lvmin);
 	double M3_N=M3m(jvmin,lvmin);
-	cout<<"jvmin,lvmin: "<<jvmin<<", "<<lvmin<<endl;
+//	cout<<"jvmin,lvmin: "<<jvmin<<", "<<lvmin<<endl;
 	
 	cout<<"moments determined by polynomial fit to G(tau) at boundaries:\n";
 	cout<<"norm: "<<M0_N<<endl;
 	cout<<"first moment: "<<M1_N<<endl;
 	cout<<"second moment: "<<M2_N<<endl;
 	cout<<"third moment: "<<M3_N<<endl;
+	
+	cout<<"moments computed from the derivatives:\n";
+	
+	vec G0b(2);
+	var_G0.min(jvmin,lvmin);
+	G0b(0)=G0m(jvmin,lvmin);
+	var_Gb.min(jvmin,lvmin);
+	G0b(1)=Gbm(jvmin,lvmin);
+	cout<<"norm: "<<-(G0b(0)+sgn*G0b(1))<<endl;
+	
+	dG_tau.zeros(2);
+	var_dG0.min(jvmin,lvmin);
+	dG_tau(0)=dG0m(jvmin,lvmin);
+	var_dGb.min(jvmin,lvmin);
+	dG_tau(1)=dGbm(jvmin,lvmin);
+	cout<<"first moment: "<<dG_tau(0)+sgn*dG_tau(1)<<endl;
+	
+	d2G_tau.zeros(2);
+	var_d2G0.min(jvmin,lvmin);
+	d2G_tau(0)=d2G0m(jvmin,lvmin);
+	var_d2Gb.min(jvmin,lvmin);
+	d2G_tau(1)=d2Gbm(jvmin,lvmin);
+	cout<<"second moment: "<<-(d2G_tau(0)+sgn*d2G_tau(1))<<endl;
+	
+	d3G_tau.zeros(2);
+	var_d3G0.min(jvmin,lvmin);
+	d3G_tau(0)=d3G0m(jvmin,lvmin);
+	var_d3Gb.min(jvmin,lvmin);
+	d3G_tau(1)=d3Gbm(jvmin,lvmin);
+	cout<<"third moment: "<<(d3G_tau(0)+sgn*d3G_tau(1))<<endl;
 	
 	npmax=Nfitmax-1;
 	if (displ_adv_prep_figs)
@@ -10233,27 +10361,37 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	}
 	
 	varM1.min(jvmin,lvmin);
-	np=lvmin+Nv+2;
+	//np=lvmin+Nv+2;
+	np=lvmin+Nv+npmin;
 	Nfit=jvmin+NvN+np+1;
 	X=zeros<mat>(Nfit,np+1);
 	for (p=0; p<=np; p++)
 		X.col(p)=pow(tau.rows(0,Nfit-1),p);
 	
-	CG=Ctau_all.submat(0,0,Nfit-1,Nfit-1)+fliplr(Ctau_all.submat(0,Ntau-Nfit+1,Nfit-1,Ntau))+flipud(Ctau_all.submat(Ntau-Nfit+1,0,Ntau,Nfit-1))+flipud(fliplr(Ctau_all.submat(Ntau-Nfit+1,Ntau-Nfit+1,Ntau,Ntau)));
-	//	CG(0,0)=CG(1,1);
+	CG=Ctau_all.submat(0,0,Nfit-1,Nfit-1)+sgn*fliplr(Ctau_all.submat(0,Ntau-Nfit+1,Nfit-1,Ntau))+sgn*flipud(Ctau_all.submat(Ntau-Nfit+1,0,Ntau,Nfit-1))+flipud(fliplr(Ctau_all.submat(Ntau-Nfit+1,Ntau-Nfit+1,Ntau,Ntau)));
 	invCG=inv(CG);
-	//	invCG=inv_sympd(CG);
 	AM=(X.t())*invCG*X;
 	mat invAMp=inv(AM);
 	
-	CG=Ctau_all.submat(0,0,Nfit-1,Nfit-1)-fliplr(Ctau_all.submat(0,Ntau-Nfit+1,Nfit-1,Ntau))-flipud(Ctau_all.submat(Ntau-Nfit+1,0,Ntau,Nfit-1))+flipud(fliplr(Ctau_all.submat(Ntau-Nfit+1,Ntau-Nfit+1,Ntau,Ntau)));
+	CG=Ctau_all.submat(0,0,Nfit-1,Nfit-1)-sgn*fliplr(Ctau_all.submat(0,Ntau-Nfit+1,Nfit-1,Ntau))-sgn*flipud(Ctau_all.submat(Ntau-Nfit+1,0,Ntau,Nfit-1))+flipud(fliplr(Ctau_all.submat(Ntau-Nfit+1,Ntau-Nfit+1,Ntau,Ntau)));
 	invCG=inv(CG);
-	//	invCG=inv_sympd(CG);
 	AM=(X.t())*invCG*X;
 	mat invAMn=inv(AM);
 	
+	M0_A=M0_N;
+	M1_A=M1_N;
+	M2_A=M2_N;
+	M3_A=M3_N;
+	if (boson)
+	{
+		M0_A=M1n;
+		M1_A=M0_N;
+		M2_A=M1_N;
+		M3_A=M2_N;
+	}
+	
 	double std_omega_tmp;
-	double var_omega=M2_N/M0_N-pow(M1_N/M0_N,2);
+	double var_omega=M2_A/M0_A-pow(M1_A/M0_A,2);
 	if (var_omega>0)
 		std_omega_tmp=sqrt(var_omega);
 	else
@@ -10265,127 +10403,112 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	covm_diag=true;
 	if (!moments_provided)
 	{
-		M.zeros(4);
-		M(0)=M0;
-		M(1)=M1_N;
-		M(2)=M2_N;
-		M(3)=M3_N;
-		M1=M(1);
-		M2=M(2);
-		M3=M(3);
-		NM=4;
-		M1_set=true;
-		M2_set=true;
-		errM.zeros(NM);
-		errM(0)=errM0;
-		errM(1)=sqrt(invAMn(1,1));
-		errM(2)=sqrt(invAMp(2,2));
-		errM(3)=sqrt(invAMn(3,3));
-		errM1=errM(1);
-		errM2=errM(2);
-		errM3=errM(3);
-		M_ord=linspace<vec>(0,NM-1,NM);
-	}
-	else
-	{
-		if (M0)
+		M1=M1_N;
+		M2=M2_N;
+		errM1=sqrt(invAMn(1,1));
+		errM2=sqrt(invAMp(2,2));
+		if (!boson)
 		{
-			if (abs(M0_N-M0)/M0_N>tol_norm)
+			M3=M3_N;
+			errM3=sqrt(invAMn(3,3));
+		}
+	}
+	else if (!boson)
+	{
+		M0_A=M0;
+		M1_A=M1;
+		if (abs(M0_N-M0)/M0_N>tol_norm)
+		{
+			if (M0_in.size())
+				cout<<"warning: norm of spectral function is different from provided one.\n";
+			else
 			{
-				if (M0_in.size())
-					cout<<"warning: norm of spectral function is different from provided one.\n";
-				else
-				{
-					cout<<"warning: spectral function is not normalized.\n";
-					cout<<"Use parameter \"norm of spectral function:\" in subsection DATA PARAMETERS to provide a norm different from 1.\n";
-				}
+				cout<<"warning: spectral function is not normalized.\n";
+			//	cout<<"Use parameter \"norm of spectral function:\" in subsection DATA PARAMETERS to provide a norm different from 1.\n";
 			}
 		}
 		
-		if (abs(M1-M1_N)/std_omega_tmp>tol_M1)
+		if ( abs(M1-M1_N)/std_omega_tmp>tol_M1 )
 			cout<<"warning: first moment different from provided one\n";
 		
 		if (M2_in.size())
 		{
+			M2_A=M2;
 			if (abs(M2-M2_N)/M2_N>tol_M2)
 				cout<<"warning: second moment different from provided one\n";
-			
-			if (M3_in.size())
-			{
-				if (abs(M3-M3_N)/pow(std_omega_tmp,3)>tol_M3)
-				{
-					cout<<"warning: third moment different from provided one\n";
-				}
-			}
-			else
-			{
-				M3=M3_N;
-				M.zeros(4);
-				M(0)=M0;
-				M(1)=M1;
-				M(2)=M2;
-				M(3)=M3;
-				errM3=sqrt(invAMn(3,3));
-				NM=4;
-				errM.zeros(NM);
-				errM(0)=errM0;
-				errM(1)=errM1;
-				errM(2)=errM2;
-				errM(3)=errM3;
-				M_ord=linspace<vec>(0,NM-1,NM);
-			}
-		}
-		else if (M3_in.size())
-		{
-			M2=M2_N;
-			M2_set=true;
-			M.zeros(4);
-			M(0)=M0;
-			M(1)=M1;
-			M(2)=M2;
-			M(3)=M3;
-			errM2=sqrt(invAMp(2,2));
-			NM=4;
-			errM.zeros(NM);
-			errM(0)=errM0;
-			errM(1)=errM1;
-			errM(2)=errM2;
-			errM(3)=errM3;
-			M_ord=linspace<vec>(0,NM-1,NM);
 		}
 		else
 		{
 			M2=M2_N;
 			M2_set=true;
-			M3=M3_N;
 			errM2=sqrt(invAMp(2,2));
+		}
+		
+		if (M3_in.size())
+		{
+			M3_A=M3;
+			if (abs(M3-M3_N)/pow(std_omega_tmp,3)>tol_M3)
+			{
+				cout<<"warning: third moment different from provided one\n";
+			}
+		}
+		else
+		{
+			M3=M3_N;
 			errM3=sqrt(invAMn(3,3));
-			M.zeros(4);
-			M(0)=M0;
-			M(1)=M1;
-			M(2)=M2;
-			M(3)=M3;
-			NM=4;
-			errM.zeros(NM);
-			errM(0)=errM0;
-			errM(1)=errM1;
-			errM(2)=errM2;
-			errM(3)=errM3;
-			M_ord=linspace<vec>(0,NM-1,NM);
 		}
 	}
+	else
+	{
+		M0_A=M1n;
+		M1_A=M0;
+		M2_A=M1;
+		if (abs(M1-M1_N)/M1_N>tol_M1)
+			cout<<"warning: first moment different from provided one\n";
+		
+		if (col_Gi>0)
+		{
+			if (M2_in.size())
+			{
+				M3_A=M2;
+				if (abs(M2-M2_N)/pow(std_omega_tmp,2)>tol_M2)
+					cout<<"warning: second moment different from provided one\n";
+			}
+			else
+			{
+				M2=M2_N;
+				M2_set=true;
+				errM2=sqrt(invAMn(2,2));
+			}
+		}
+	}
+	NM=4;
+	if (boson) NM=3;
+	M.zeros(NM);
+	M(0)=M0;
+	M(1)=M1;
+	M(2)=M2;
+	if (!boson) M(3)=M3;
+	
+	errM.zeros(NM);
+	errM(0)=errM0;
+	errM(1)=errM1;
+	errM(2)=errM2;
+	if (!boson) errM(3)=errM3;
+	M_ord=linspace<vec>(0,NM-1,NM);
+	
 	COVM.zeros(NM,NM);
 	COVM.diag()=square(errM);
 	
 	if (!std_omega)
 	{
-		var_omega=M2/M0-pow(M1/M0,2);
+		var_omega=M2_A/M0_A-pow(M1_A/M0_A,2);
 		std_omega=sqrt(var_omega);
 	}
 	
 	if (!SC_set)
 	{
-		SC=M1/M0;
+		SC=M1_A/M0_A;
 		SC_set=true;
 	}
 	if (!SW_set)
@@ -10393,14 +10516,17 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 		SW=f_SW_std_omega*std_omega;
 		SW_set=true;
 	}
-	if (M(2)<0)
+/*
+	if (M2_A<0)
 	{
+		
 		M=M.rows(0,1);
 		COVM=COVM.submat(0,0,1,1);
 		NM=2;
 	}
+*/
 	
-	dG_dtau_computed=compute_dG_dtau();
+//	dG_dtau_computed=compute_dG_dtau();
 	
 	return true;
 }

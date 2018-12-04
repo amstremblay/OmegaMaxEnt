@@ -342,12 +342,14 @@ extern "C++"
 		bool compute_moments_omega_n_2();
 		// extract moments from a real (even) Matsubara frequency correlation function
 		bool compute_moments_chi_omega_n();
-		//compute derivatives of G(tau) at tau=0 and tau=beta
-		bool compute_dG_dtau();
+		// extract moments from an imaginary time Green function and its derivatives at tau=0 and tau=beta
+		bool compute_moments_tau();
+		// compute derivatives of G(tau) at tau=0 and tau=beta
+//		bool compute_dG_dtau();
 		// extract moments from an imaginary time fermionic Green function
-		bool compute_moments_tau_fermions();
+//		bool compute_moments_tau_fermions();
 		// extract moments from an imaginary time bosonic Green function
-		bool compute_moments_tau_bosons();
+//		bool compute_moments_tau_bosons();
 		// test the presence of a sharp peak around omega=0, using a Laurent series fit, for a fermionic Matsubara frequency Green function
 		bool test_low_energy_peak_fermions();
 		// test the presence of a sharp peak around omega=0, using a Laurent series fit, for a bosonic Matsubara frequency Green function
@@ -533,7 +535,7 @@ extern "C++"
 		
         bool data_file_loaded, use_grid_params, use_const_dw, use_exp_step, displ_prep_figs, displ_adv_prep_figs, print_other_params, boson, tau_GF, initialize, initialize_maxent, execute_maxent, save_spec_func, print_alpha, displ_optim_figs, cov_diag, moments_provided, eval_moments, covm_diag, wc_exists, w_exists, SW_set, SC_set, peak_exists, read_params, read_other_params, params_loaded, other_params_loaded, M1_set, M2_set, main_spectral_region_set, A_ref_change, show_optimal_alpha_figs, show_lowest_alpha_figs, show_alpha_curves, preproc_complete, Du_constant, non_uniform_grid, w_origin_set, interactive_mode, Ginf_finite, alpha_min_too_high, error_provided, compute_Pade, dG_dtau_computed;
 		
-        double tem, cutoff_wn, SW, SC, w_origin, step_omega, signG, alpha0, alpha0_default, alpha, pow_alpha_step, alpha_min_default, alpha_min, alpha_opt_max, alpha_opt_min, M0, errM0, M1, errM1, M2, errM2, M3, errM3, std_omega, omega_n_trunc, wl, wr, w0l, w0r, dwl, dwr, dw_peak, M0t, M1n, default_model_width, default_model_center, default_model_shape, dlchi2_lalpha_min, dlchi2_lalpha_max, alpha_save_max, alpha_save_min, lchi2_lalpha_lgth, G_omega_inf, eta_Pade;
+        double tem, cutoff_wn, SW, SC, w_origin, step_omega, signG, alpha0, alpha0_default, alpha, pow_alpha_step, alpha_min_default, alpha_min, alpha_opt_max, alpha_opt_min, M0, errM0, M1, errM1, M2, errM2, M3, errM3, std_omega, omega_n_trunc, wl, wr, w0l, w0r, dwl, dwr, dw_peak, M0t, M1n, default_model_width, default_model_center, default_model_shape, dlchi2_lalpha_min, dlchi2_lalpha_max, alpha_save_max, alpha_save_min, lchi2_lalpha_lgth, G_omega_inf, eta_Pade, M0_A, M1_A, M2_A, M3_A;
         
         uint col_Gr, col_errGr, col_errGi, col_Gtau, col_errGtau, Nalpha, Nn, Nn_all, indG_0, indG_f, NM, NMinput, NM_odd, NM_even, Nw, NwA, Nwc, Nw_dense, Nw_out, jfit, ind_cutoff_wn, NGM, Nalpha_max, NAprec, ind0, Ntau, Nn_as_min;
 		uvec n, n_all, Nw_lims;
