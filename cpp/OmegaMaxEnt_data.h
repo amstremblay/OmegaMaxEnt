@@ -501,10 +501,10 @@ extern "C++"
 		void Fourier_transform_spectrum(vec wFt, vec AwFt, vec &t, cx_vec &At);
 		//compute the real frequency Green function from A(t)
 		void compute_G_Re_omega_from_A_t(vec t, cx_vec At, cx_vec &G_Re_omega);
-		//compute the real part of the real-frequency Green function Re[G(omega)] using the Kramers-Kronig relation
+		//compute the real part of the real-frequency Green function Re[G(omega)]
 		void compute_Re_G_omega(vec Ap);
-		//compute the real part of the real-frequency correlation function Re[chi(omega)] that has the property chi(-omega)=chi*(omega) using the Kramers-Kronig relation
-		void compute_Re_chi_omega(vec Ap);
+		//compute the real part of the real-frequency correlation function Re[chi(omega)] that has the property chi(-omega)=chi*(omega)
+	//	void compute_Re_chi_omega(vec Ap);
 		//set the output (uniform) real frequency grid. extr_w(0) and extr_w(1) are the extrema of the grid used in the MaxEnt computation (for which the spectrum is defined)
 		void set_output_frequency_grid(vec extr_w);
 		// perform the Kramers-Kronig integral 
@@ -544,7 +544,7 @@ extern "C++"
 		mat K, KGM, KGMw, invDw, KG_V, KM, KM_V, COV, CRR, CII, CRI, COVM, COVMfit, Ctau, Ctau_all, green_data, error_data, grid_w_data, def_data, Aw_data, Aref_data, Aprec, Aw_samp;
 		rowvec omega_grid_params, w_sample, noise_params, output_grid_params;
 		uvec w_sample_ind;
-		vec w_out, w_dense, Gr_Re_w, Gi_Re_w, Gr_Re_w_KK, Gi_Re_w_KK, Gi_Re_w_FFT, Gr, Gi, Gchi2, G_V, GM, wn, wn_all, errGr, errGi, errG, errGtau, M, M_V, errM, M_even, M_odd, Mfit, ws, A, A0, Amin, wc, w, wA, dwS, default_model, w_ref, A_ref, chi2_vec, alpha_vec, S_vec, M_ord, Gtau, tau, dlchi2_lalpha_1, curv_lchi2_lalpha_1, grid_dens, P_alpha_G, log_P_alpha_G, dG_tau, d2G_tau, d3G_tau, t_re, dG_w;
+		vec w_out, w_dense, Gr_Re_w, Gi_Re_w, Gr_Re_w_KK, Gi_Re_w_KK, Gi_Re_w_FFT, Gr, Gi, Gchi2, G_V, GM, wn, wn_all, errGr, errGi, errG, errGtau, M, M_V, errM, M_even, M_odd, Mfit, ws, A, A0, Amin, wc, w, wA, dwS, default_model, w_ref, A_ref, chi2_vec, alpha_vec, S_vec, M_ord, Gtau, tau, dlchi2_lalpha_1, curv_lchi2_lalpha_1, grid_dens, P_alpha_G, log_P_alpha_G, dG_tau, d2G_tau, d3G_tau, t_re, dG_w, A_Pade;
 		cx_vec G, G_all, G_t_re, GR_Pade;
 		cx_mat Kcx;
 		uword ind_P_alpha_G_max;
