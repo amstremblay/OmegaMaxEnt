@@ -3271,7 +3271,7 @@ void OmegaMaxEnt_data::compute_G_with_Pade(vec wP, int NP, double eta)
 		string lgdA;
 		if (!boson) lgdA="-2Im$[G(\\omega)]$";
 		else if (col_Gi>0) lgdA="-2Im$[G(\\omega)]/\\omega$";
-		else lgdA="Im$[\\chi(\\omega)]/\\omega$";
+		else lgdA="Im$[G(\\omega)]/\\omega$";
 		char attr_r[]="'b'";
 		char attr_i[]="'r'";
 		char title[]="Real frequency result from Pade";
@@ -3288,9 +3288,9 @@ void OmegaMaxEnt_data::compute_G_with_Pade(vec wP, int NP, double eta)
 		
 		g2.add_data(wP.memptr(),A_Pade.memptr(),NwP);
 		g2.add_attribute(attr_i);
-		g2.add_to_legend(lgdA.c_str());
 		if (A_ref_file.size() && A_ref.n_rows)
 		{
+			g2.add_to_legend(lgdA.c_str());
 			g2.add_data(w_ref.memptr(),A_ref.memptr(),w_ref.n_rows);
 			g2.add_attribute("'m'");
 			g2.add_to_legend("reference spectrum");
