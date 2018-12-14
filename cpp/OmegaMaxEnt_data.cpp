@@ -3121,7 +3121,7 @@ bool OmegaMaxEnt_data::preproc()
 			graph_2D::show_figures();
 		}
 	}
-
+	
 	set_output_frequency_grid(extr_w);
 	
 	if (compute_Pade)
@@ -3189,7 +3189,9 @@ void OmegaMaxEnt_data::compute_G_with_Pade(vec wP, int NP, double eta)
 	else
 	{
 		double tol_w0=1e-4;
-		double eps=1000*eta;
+		double Rdw=20;
+		double eps, wp, wm;
+		dcomplex GRtmp_p, GRtmp_m;
 		
 		A_Pade=-2*G_Pade_im/wP;
 		j=0;
@@ -3199,10 +3201,17 @@ void OmegaMaxEnt_data::compute_G_with_Pade(vec wP, int NP, double eta)
 			if (j>1 && fabs(wP(j-1))<fabs(wP(j))) j--;
 			if (fabs(wP(j))/SW<tol_w0)
 			{
-				A_Pade(j)=-2*(G_Pade_im(j+1)-G_Pade_im(j-1))/(wP(j+1)-wP(j-1));
+				eps=(wP(j+1)-wP(j-1))/Rdw;
+				wp=wP(j)+eps;
+				wm=wP(j)-eps;
+				GRtmp_p=pade(dcomplex(wp,eta), NP, iwn.memptr(), coeffs.memptr());
+				GRtmp_m=pade(dcomplex(wm,eta), NP, iwn.memptr(), coeffs.memptr());
+				A_Pade(j)=-2.0*(imag(GRtmp_p)-imag(GRtmp_m))/(wp-wm);
 			}
 		}
 	}
+	
+	if (col_Gi<=0) A_Pade=A_Pade/2;
 	
 	if (Ginf_finite) G_Pade_re=G_Pade_re+G_omega_inf;
 	
@@ -3259,8 +3268,10 @@ void OmegaMaxEnt_data::compute_G_with_Pade(vec wP, int NP, double eta)
 		char xl[]="$\\\\omega$";
 		char lgdr[]="Re$[G(\\omega)]$";
 		char lgdi[]="Im$[G(\\omega)]$";
-		char lgdA[]="-2Im$[G(\\omega)]$";
-		char lgdA_B[]="-2Im$[G(\\omega)]/\\omega$";
+		string lgdA;
+		if (!boson) lgdA="-2Im$[G(\\omega)]$";
+		else if (col_Gi>0) lgdA="-2Im$[G(\\omega)]/\\omega$";
+		else lgdA="Im$[\\chi(\\omega)]/\\omega$";
 		char attr_r[]="'b'";
 		char attr_i[]="'r'";
 		char title[]="Real frequency result from Pade";
@@ -3277,11 +3288,7 @@ void OmegaMaxEnt_data::compute_G_with_Pade(vec wP, int NP, double eta)
 		
 		g2.add_data(wP.memptr(),A_Pade.memptr(),NwP);
 		g2.add_attribute(attr_i);
-		if (!boson) g2.add_to_legend(lgdA);
-		else g2.add_to_legend(lgdA_B);
-//		g2.add_data(w.memptr(),A_pi.memptr(),Nw);
-//		g2.add_attribute("'m'");
-//		g2.add_to_legend("$A_{pinv}$");
+		g2.add_to_legend(lgdA.c_str());
 		if (A_ref_file.size() && A_ref.n_rows)
 		{
 			g2.add_data(w_ref.memptr(),A_ref.memptr(),w_ref.n_rows);
@@ -3568,13 +3575,6 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 	
 	void *par[5];
 	fctPtr1 Ptr;
-	
-/*
-	par[0]=&w_spline;
-	par[1]=&Nw_lims_spline;
-	par[2]=&ws_spline;
-	par[3]=&coeffs;
-*/
 
 	par[0]=&w;
 	par[1]=&Nw_lims;
@@ -10464,20 +10464,33 @@ bool OmegaMaxEnt_data::compute_moments_tau()
 			}
 		}
 	}
-	NM=4;
-	if (boson) NM=3;
-	M.zeros(NM);
-	M(0)=M0;
-	M(1)=M1;
-	M(2)=M2;
-	if (!boson) M(3)=M3;
-	
-	errM.zeros(NM);
-	errM(0)=errM0;
-	errM(1)=errM1;
-	errM(2)=errM2;
-	if (!boson) errM(3)=errM3;
-	M_ord=linspace<vec>(0,NM-1,NM);
+	if (col_Gi>0)
+	{
+		NM=4;
+		if (boson) NM=3;
+		M.zeros(NM);
+		M(0)=M0;
+		M(1)=M1;
+		M(2)=M2;
+		if (!boson) M(3)=M3;
+		
+		errM.zeros(NM);
+		errM(0)=errM0;
+		errM(1)=errM1;
+		errM(2)=errM2;
+		if (!boson) errM(3)=errM3;
+		M_ord=linspace<vec>(0,NM-1,NM);
+	}
+	else
+	{
+		NM=1;
+		M.zeros(1);
+		M(0)=M1;
+		errM.zeros(1);
+		errM(0)=errM1;
+		M_ord.zeros(1);
+		M_ord(0)=1;
+	}
 	
 	COVM.zeros(NM,NM);
 	COVM.diag()=square(errM);
