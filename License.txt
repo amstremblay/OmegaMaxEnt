@@ -1,4 +1,0 @@
-This software is distributed under the GNU General Public License (GPLv3).
-	http://www.gnu.org/licenses/gpl-3.0.en.html
-
-If you use this software in a publication please quote the paper in Citation.txt
