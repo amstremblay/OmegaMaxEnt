@@ -1,0 +1,57 @@
+Nn_min, minimum number of Matsubara frequencies: 20
+Nn_max, maximum number of Matsubara frequencies: 500
+Nw_min, minimum number of real frequencies: 50
+Nw_max, maximum number of real frequencies: 800
+Nn_fit_max, initial maximum number of frequencies used to fit the asymptotic form during computation of moments: 200
+Nn_fit_fin, final maximum number of frequencies used to fit the asymptotic form during computation of moments: 300
+Nn_as_min, minimum number of frequencies in the asymptotic region: 10
+Niter_dA_max, maximum number of iterations in Newton's method for a given value of alpha: 20
+Nwsamp, default number of sample frequencies of spectral function to be save as a function of alpha: 11
+Nsmooth_errG, smoothing distance for the added noise error: 0
+f_SW_std_omega, ratio of main spectral range and standard deviation of spectrum: 3
+f_w_range, total real frequency range=f_w_range*(spectral function width): 20
+Rmin_SW_dw, minimum ratio of standard deviation and frequency step: 50
+tol_tem, relative tolerance between temperature extracted from Matsubara frequency and input temperature: 1e-08
+tol_Ginf, tolerance on frequency-independent part of data: 0.001
+tol_norm, tolerance on norm extracted from high frequency: 0.1
+tol_M1, tolerance between 1st moment extracted from high frequency and input one: 0.05
+tol_M2, tolerance between 2nd moment extracted from high frequency and input one: 0.05
+tol_M3, tolerance between 3rd moment extracted from high frequency and input one: 0.1
+default_error_G, default error on the input data: 0.0001
+err_norm, relative error on norm: 0.0001
+default_error_M, default error on moments: 0.001
+tol_mean_C1, tolerance on mean(M0(n)): 0.002
+tol_std_C1, tolerance on std(M0(n)): 0.002
+tol_rdw, tolerance on ratio of consecutive frequency step: 1e-10
+Rmin_Dw_dw, minimum number of steps in a grid interval: 4
+Rdw_max, maximum ratio of steps in consecutive grid interval: 5
+RW_grid, grid interval vs transition region ratio: 3
+RWD_grid, transition region vs width parameter ratio: 10
+minDefM, minimum value of default model: 1e-20
+f_alpha_init, initial ratio of entropy and chi2 contributions to the spectrum: 1e+03
+R_width_ASmin, width of the minimum entropy spectrum relative to spectral function width: 0.05
+f_Smin, minimum entropy term versus optimal chi2 ratio: 1
+R_chi2_min, minimum ratio of chi2 for consecutive values of alpha: 0.8
+tol_int_dA, tolerance on consecutive values of the integral of |dA| in Newton's method: 1e-12
+rc2H, maximum ratio of the penalization parameter and the maximum eigenvalue of the hessian of chi2: 1e+12
+pow_alpha_step_init, initial value of the step in log_10(alpha): 0.2
+pow_alpha_step_min, minimum value of the step in log_10(alpha): 0.001
+chi2_alpha_smooth_range, chi2 vs alpha smoothing range in log10 scale: 0.5
+f_scale_lalpha_lchi2, log(alpha) scale factor with respect to log(chi2) in the curvature calculation: 0.2
+FNfitTauW, factor to determine the number of values of tau in the polynomial fit: 4
+std_norm_peak_max, relative tolerance for standard deviation of low frequency peak weight: 0.02
+varM2_peak_max, relative tolerance on low frequency peak variance: 0.02
+peak_weight_min, minimum value of peak weight to assume a low energy peak is present: 0.0001
+RMAX_dlchi2_lalpha, maximum ratio of dlog(chi2)/dlog(alpha) at the lowest alpha and the maximum value: 0.01
+f_alpha_min, factor by which alpha_min is reduced when found to be too high: 1e+02
+save_alpha_range, range of alpha to be saved around the optimal alpha in log10 scale: 0
+R_peak_width_dw, ratio of low energy peak width and low frequency step: 10
+R_wncutoff_wr, ratio of onset Matsubara frequency of asymptotic region and main spectral range maximum frequency: 10
+R_Dw_dw, ratio of grid interval length and step: 30
+R_SW_wr, ratio of main spectral range maximum frequency and spectrum standard deviation: 1
+R_wmax_wr_min, minimum ratio of grid maximum frequency and main spectral range maximum frequency: 3
+wgt_min_sm, smallest relative weight in the smoothing of the added noise error: 0.2
+R_SW_G_Re_w_range, ratio of total frequency range and main spectral region for the real part of G: 10
+R_dw_min_dw_dense, default ratio of the minimal step in the computation grid and the step in the output grid: 5
+R_wKK_SW, frequency region around zero where Re[G] is computed with Kramers-Kronig, divided by the spectral function width: 0.01
+R_sv_min, minimum ratio of matrix singular values in the moments computation in tau: 1e-10

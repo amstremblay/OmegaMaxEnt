@@ -129,6 +129,8 @@ int OmegaMaxEnt_data::loop_run()
 	
 	if (interactive_mode)
 	{
+		cout<<OmegaMaxEnt_notice<<endl;
+	/*
 		ifstream file("license_info_displayed");
 		if (!file)
 		{
@@ -154,9 +156,10 @@ int OmegaMaxEnt_data::loop_run()
 				cout<<OmegaMaxEnt_notice<<endl;
 			}
 		}
+	 */
 	}
 	
-	if (graph_2D::print_to_file && interactive_mode) cout<<"Figures can be displayed by executing the command \"python OmegaMaxEnt_figs_#.py\" where # is one of the indices in file figs_ind.dat\n";
+//	if (graph_2D::print_to_file && interactive_mode) cout<<"Figures can be displayed by executing the command \"python OmegaMaxEnt_figs_#.py\" where # is one of the indices in file figs_ind.dat\n";
 	
 	do
 	{
