@@ -8,7 +8,7 @@ target_compile_options(OmegaMaxEnt PRIVATE -std=c++11 -O0)
 
 target_compile_definitions(OmegaMaxEnt PRIVATE ARMA_DONT_USE_WRAPPER)
 
-target_link_libraries(OmegaMaxEnt blas lapack fftw3 gsl)
+target_link_libraries(OmegaMaxEnt blas lapack fftw3)
 
 install(TARGETS OmegaMaxEnt DESTINATION bin)
 

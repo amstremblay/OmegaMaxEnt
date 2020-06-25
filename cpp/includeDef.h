@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <random>
-#include <gsl/gsl_linalg.h>
+//#include <gsl/gsl_linalg.h>
 #include "armadillo"
 
 #ifndef PI
