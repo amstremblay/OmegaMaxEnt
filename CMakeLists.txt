@@ -13,7 +13,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 -ftree-vectorize")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -fopenmp -ftree-vectorize")
 
 add_executable(OmegaMaxEnt 
     cpp/graph_2D.cpp
@@ -33,7 +33,7 @@ target_include_directories (
     OmegaMaxEnt PRIVATE cpp ${LAPACK_INCLUDE_DIRS} ${ARMADILLO_INCLUDE_DIRS} ${FFTW_INCLUDE_DIRS}
 )
 
-target_compile_definitions(OmegaMaxEnt PRIVATE ARMA_DONT_USE_WRAPPER)
+#target_compile_definitions(OmegaMaxEnt PRIVATE ARMA_DONT_USE_WRAPPER)
 
 target_link_libraries(OmegaMaxEnt ${LAPACK_LIBRARIES} ${ARMADILLO_LIBRARIES} ${FFTW_LIBRARIES})
 
