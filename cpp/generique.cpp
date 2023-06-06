@@ -66,6 +66,7 @@ double generique::simpson_integ(vec f, double dx)
 	return sum(0)*dx/3;
 }
 
+/*
 int generique::solve_LU(vec &X, mat &A, vec &B)
 {
 	int N=B.n_rows;
@@ -84,7 +85,7 @@ int generique::solve_LU(vec &X, mat &A, vec &B)
 	
 	return rv;
 }
-
+*/
 
 bool generique::copy_file(const string fname, const string in_dir, const string out_dir, const string out_name)
 {
