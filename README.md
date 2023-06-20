@@ -1,7 +1,8 @@
 # OmegaMaxEnt
 
 OmegaMaxEnt is a tool for the analytic continuation of Matsubara data. 
-It is published under the [GNU Public License, version 3][license]. 
+It is published under the [GNU Public License, version 3][license].
+Informations on installation and usage are available on the program's [web page][OME_web].
 See the [citation page][cite] if you use the program in publications.
 
 Original code: [dbergeron1/OmegaMaxEnt](https://github.com/dbergeron1/OmegaMaxEnt).
