@@ -12,7 +12,7 @@ Latter modified by Moise Rousseau keeping the code up to date.
 1. Install the necessary dependencies BLAS/LAPACK, FFTW3 and Armadillo.
 For example, for Ubuntu system (adapt to our own machine)
 ```
-sudo apt install cmake libarmadillo-dev libfftw3-dev
+sudo apt install cmake libfftw3-dev
 ```
 
 2. Clone this repository:
@@ -23,7 +23,7 @@ git https://github.com/MoiseRousseau/OmegaMaxEnt && cd OmegaMaxEnt
 3. Build `OmegaMaxEnt`:
 ```
 mkdir build && cd build
-cmake ..
+cmake .. -DDOWNLOAD_ARMADILLO=1
 make
 ```
 
