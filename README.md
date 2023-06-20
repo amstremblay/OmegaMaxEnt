@@ -15,6 +15,10 @@ For example, for Ubuntu system (adapt to our own machine)
 ```
 sudo apt install cmake libfftw3-dev
 ```
+Or, load the following modules on Digital Research Alliance of Canada' systems (formerly Compute Canada):
+```
+module load StdEnv/2020 gcc/9.3.0 fftw/3.3.8 cmake/3.23.1
+```
 
 2. Clone this repository:
 ```
