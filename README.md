@@ -28,7 +28,7 @@ git https://github.com/MoiseRousseau/OmegaMaxEnt && cd OmegaMaxEnt
 3. Build `OmegaMaxEnt`:
 ```
 mkdir build && cd build
-cmake .. -DDOWNLOAD_ARMADILLO=1
+cmake .. -DDOWNLOAD_ARMADILLO=1 -DCMAKE_BUILD_TYPE=Release
 make
 ```
 
