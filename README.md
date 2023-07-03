@@ -22,7 +22,7 @@ module load StdEnv/2020 gcc/9.3.0 fftw/3.3.8 cmake/3.23.1
 
 2. Clone this repository:
 ```
-git https://github.com/MoiseRousseau/OmegaMaxEnt && cd OmegaMaxEnt
+git clone https://github.com/amstremblay/OmegaMaxEnt && cd OmegaMaxEnt
 ```
 
 3. Build `OmegaMaxEnt`:
