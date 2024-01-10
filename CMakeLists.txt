@@ -34,8 +34,9 @@ if (DOWNLOAD_ARMADILLO)
     ExternalProject_Add(Armadillo
         PREFIX ${CMAKE_SOURCE_DIR}/external
         SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/Armadillo
-        URL https://www.physique.usherbrooke.ca/MaxEnt/images/c/cb/Armadillo-5.600.2.tar.gz
-        URL_HASH MD5=268dd13d56c8c6423037a867ed2b3f4b
+        URL "https://kojipkgs.fedoraproject.org//vol/fedora_koji_archive01/packages/armadillo/5.600.2/1.fc21/src/armadillo-5.600.2-1.fc21.src.rpm"
+        URL_HASH MD5=c05255a8970290c0b743b0e49898c29e
+        PATCH_COMMAND tar -xf armadillo-5.600.2.tar.gz --strip-components=1
         BUILD_IN_SOURCE 1
         INSTALL_COMMAND ""
         STEP_TARGETS build
